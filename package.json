@@ -19,7 +19,9 @@
     "baseline": "tsx scripts/baseline.ts",
     "gate": "tsx scripts/gate.ts",
     "doctor": "tsx scripts/doctor.ts",
-    "visual:status": "tsx scripts/visual-status.ts"
+    "visual:status": "tsx scripts/visual-status.ts",
+    "build:loop": "tsx scripts/build/loop.ts",
+    "item": "tsx scripts/item.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.5.0",
