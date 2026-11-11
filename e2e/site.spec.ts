@@ -25,6 +25,19 @@ test('drivers nav link opens the driver standings', async ({ page }) => {
   await expect(page.getByRole('table')).toBeVisible()
 })
 
+test('constructors nav link opens the constructor standings', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Constructors' }).click()
+  await expect(page).toHaveURL(/\/standings\/constructors$/)
+  await expect(page.getByRole('heading', { name: 'Constructor standings' })).toBeVisible()
+  await expect(page.getByRole('table')).toBeVisible()
+})
+
+test('home shows the championship leader', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText(/Championship leader: .+, \d+ pts/)).toBeVisible()
+})
+
 test('unknown race shows a not-found message', async ({ page }) => {
   await page.goto('/races/99')
   await expect(page.getByRole('heading', { name: 'Race not found' })).toBeVisible()

@@ -5,6 +5,7 @@ export const navItems = [
   { to: '/', label: 'Home', end: true },
   { to: '/calendar', label: 'Calendar', end: false },
   { to: '/standings/drivers', label: 'Drivers', end: false },
+  { to: '/standings/constructors', label: 'Constructors', end: false },
 ]
 
 export function Layout() {
