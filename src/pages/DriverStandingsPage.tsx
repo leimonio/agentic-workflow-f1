@@ -1,13 +1,8 @@
 import { TeamSwatch } from '@/components/TeamSwatch'
 import { Table, Td, Th } from '@/components/ui/table'
 import { driverById, season } from '@/data/season'
+import { teamOf } from '@/lib/drivers'
 import { driverStandings } from '@/lib/standings'
-
-// A driver's team is the one they last classified with.
-const teamOf = (driverId: string): string | undefined =>
-  season.races
-    .findLast((r) => r.results.some((x) => x.driverId === driverId))
-    ?.results.find((x) => x.driverId === driverId)?.constructorId
 
 export function DriverStandingsPage() {
   const rows = driverStandings(season.races)
@@ -20,7 +15,7 @@ export function DriverStandingsPage() {
         <tbody>
           {rows.map((r) => {
             const d = driverById(r.id)
-            const team = teamOf(r.id)
+            const team = teamOf(season.races, r.id)
             return (
               <tr key={r.id}>
                 <Td>{r.position}</Td>
