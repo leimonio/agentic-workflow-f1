@@ -24,3 +24,9 @@
 - `/standings/drivers` renders 20+ drivers ordered by points.
 - New unit test, story and e2e test exist.
 - `npm run verify` shows no failure other than the planted one.
+
+## What changed on `step-1-solution`
+
+- `.claude/skills/build-feature/SKILL.md`: the skill.
+- `src/pages/DriverStandingsPage.{tsx,test.tsx,stories.tsx}`, the route in `src/App.tsx`, the "Drivers" nav link, one e2e test. All written by the skill (dogfood run: 44 s, 12 turns, $0.21 on sonnet).
+- Check: `git diff main --stat`, then `npm run baseline && npm run gate` → `PASS (0 new, 1 pre-existing)`. Norris leads with 423.
