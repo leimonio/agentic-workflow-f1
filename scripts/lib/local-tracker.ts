@@ -21,6 +21,13 @@ export function localTracker(dir = '.agent/items'): Tracker {
     async get(id) {
       return read(id)
     },
+    async create(fields) {
+      const base = fields.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item'
+      let id = base
+      for (let n = 2; existsSync(file(id)); n++) id = `${base}-${n}`
+      write({ ...fields, id })
+      return id
+    },
     async update(id, fields) {
       const item = existsSync(file(id)) ? read(id) : ({ id } as Item)
       write({ ...item, ...fields, id })

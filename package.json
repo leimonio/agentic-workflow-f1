@@ -21,7 +21,12 @@
     "doctor": "tsx scripts/doctor.ts",
     "visual:status": "tsx scripts/visual-status.ts",
     "build:loop": "tsx scripts/build/loop.ts",
-    "item": "tsx scripts/item.ts"
+    "item": "tsx scripts/item.ts",
+    "plan:loop": "tsx scripts/plan/loop.ts",
+    "dispatch": "tsx scripts/dispatch.ts",
+    "board:setup": "tsx scripts/board/setup.ts",
+    "board:read": "tsx scripts/board/read.ts",
+    "board:write": "tsx scripts/board/write.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.5.0",

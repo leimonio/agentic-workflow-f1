@@ -17,6 +17,14 @@ describe('local tracker', () => {
     expect((await t.get('7')).needsHuman).toBe('Q?')
     expect(readFileSync(join(root, 'handoff.md'), 'utf8')).toContain('## Question\nQ?')
   })
+
+  it('creates items with a slug id that never overwrites', async () => {
+    const t = localTracker(join(mkdtempSync(join(tmpdir(), 'trk-')), 'items'))
+    const a = await t.create({ title: 'Driver profile: header', type: 'Task', description: 'd' })
+    const b = await t.create({ title: 'Driver profile: header', type: 'Task', description: 'e' })
+    expect([a, b]).toEqual(['driver-profile-header', 'driver-profile-header-2'])
+    expect((await t.get(b)).description).toBe('e')
+  })
 })
 
 describe('renderHandoff', () => {

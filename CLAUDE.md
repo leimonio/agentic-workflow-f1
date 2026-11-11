@@ -23,6 +23,11 @@ A small React app (race calendar, race results, home) built for the workshop
 | `npm run baseline` | Runs verify on the merge base in a clean worktree. Writes `.agent/baseline.json`. |
 | `npm run gate` | Runs verify, diffs against the baseline. Exits 1 only on NEW failures. Reports new, pre-existing and fixed. |
 | `npm run visual:status` | Reads Chromatic's PR statuses for HEAD. Writes `.agent/visual.json`. |
+| `npm run build:loop -- <id>` | The build loop: one agent call per attempt, gate after each, max 3. Escalates with a handoff. |
+| `npm run plan:loop -- <id>` | Plan agent, schema check, plan-review agent, 2 retries. Writes the task items. |
+| `npm run dispatch [-- --watch] [-- --pr]` | One pass over the tracker; runs whatever stage each item is at. |
+| `npm run item -- idea\|add\|approve\|reset\|show` | Human CLI for the tracker. `approve` is the human plan gate. |
+| `npm run board:setup` / `board:read` / `board:write` | monday board: create or complete it (idempotent), read items, write non-human fields. |
 | `npm run data:fetch` | Author-only. Re-downloads the season snapshot. The app and tests never use the network. |
 
 Workflow for any change: `npm run baseline` once, edit, `npm run gate` until it reports 0 new failures.
