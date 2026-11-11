@@ -7,7 +7,8 @@ jobs:
   # Required check. Compares verify against the baseline from the merge base, so a known
   # failure on main does not block you, but a NEW failure does.
   gate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # pinned: ubuntu-latest (26) apt mirrors failed DNS, 2026-11
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
@@ -20,7 +21,8 @@ jobs:
 
   # Not required. Posts the "UI Tests" / "UI Review" statuses. A human accepts or rejects in Chromatic.
   chromatic:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # pinned: ubuntu-latest (26) apt mirrors failed DNS, 2026-11
+    timeout-minutes: 20
     env:
       CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
     steps:
