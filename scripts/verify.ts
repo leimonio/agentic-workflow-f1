@@ -1,12 +1,13 @@
 // Deterministic: runs the five checks and writes .agent/verify.json. No model involved.
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { flag, option } from './lib/args.ts'
 import { parseEslint, parsePlaywright, parseTsc, parseVitest } from './lib/parsers.ts'
 import type { Check, Result } from './lib/types.ts'
 
-const root = path.resolve(option('cwd') ?? process.cwd())
+// realpath: macOS tmp dirs live behind a symlink, and tools report the resolved path.
+const root = realpathSync(path.resolve(option('cwd') ?? process.cwd()))
 const run = (cmd: string, args: string[]) =>
   spawnSync(cmd, args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: { ...process.env, CI: process.env.CI ?? '1' } })
 
