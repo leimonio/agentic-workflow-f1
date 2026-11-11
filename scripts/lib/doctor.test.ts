@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { nodeFinding, repoFindings, type RepoFacts } from './doctor.ts'
 
-const good: RepoFacts = { slug: 'o/r', allowAutoMerge: true, actionsEnabled: true, requiredChecks: ['gate'], branch: 'main' }
+const good: RepoFacts = { slug: 'o/r', allowAutoMerge: true, actionsEnabled: true, requiredChecks: ['gate'], branch: 'main', isPrivate: false }
 
 describe('doctor', () => {
   it('node: fails when too old, warns when not the pinned major, ok otherwise', () => {
@@ -28,5 +28,11 @@ describe('doctor', () => {
   it('repo: keeps other required checks when adding gate', () => {
     const f = repoFindings({ ...good, requiredChecks: ['lint'] })
     expect(f[2]?.fix).toContain('"contexts":["lint","gate"]')
+  })
+
+  it('explains the GitHub Free limit on private repos', () => {
+    const f = repoFindings({ ...good, isPrivate: true, allowAutoMerge: false, requiredChecks: null })
+    expect(f.filter((x) => x.message.includes('private repo'))).toHaveLength(2)
+    expect(repoFindings({ ...good, isPrivate: true }).every((x) => !x.message.includes('private repo'))).toBe(true)
   })
 })

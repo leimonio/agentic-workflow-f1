@@ -37,22 +37,23 @@ findings.push(
 )
 
 const repo = gh('repo view --json nameWithOwner,defaultBranchRef')
-if (!repo) findings.push({ id: 'repo', status: 'warn', message: 'No GitHub repo for this checkout yet: repo settings not checked. Use the template, then re-run.' })
-else {
-  const slug: string = repo.nameWithOwner
-  const branch: string = repo.defaultBranchRef.name
+// Read live settings every time: a fix command can exit 0 without changing anything.
+const checkRepo = (slug: string, branch: string) => {
   const settings = gh(`api repos/${slug}`)
   const prot = gh(`api repos/${slug}/branches/${branch}/protection`)
   const actions = gh(`api repos/${slug}/actions/permissions`)
-  findings.push(
-    ...repoFindings({
-      slug,
-      branch,
-      allowAutoMerge: settings?.allow_auto_merge === true,
-      actionsEnabled: actions?.enabled === true,
-      requiredChecks: prot ? (prot.required_status_checks?.contexts ?? []) : null,
-    }),
-  )
+  return repoFindings({
+    slug,
+    branch,
+    isPrivate: settings?.private === true,
+    allowAutoMerge: settings?.allow_auto_merge === true,
+    actionsEnabled: actions?.enabled === true,
+    requiredChecks: prot ? (prot.required_status_checks?.contexts ?? []) : null,
+  })
+}
+if (!repo) findings.push({ id: 'repo', status: 'warn', message: 'No GitHub repo for this checkout yet: repo settings not checked. Use the template, then re-run.' })
+else {
+  findings.push(...checkRepo(repo.nameWithOwner, repo.defaultBranchRef.name))
   const token = env('CHROMATIC_PROJECT_TOKEN')
   const hasSecret = ok(`gh secret list | grep -q '^CHROMATIC_PROJECT_TOKEN'`)
   findings.push(
@@ -70,6 +71,13 @@ if (flag('fix')) {
     const r = sh(f.fix)
     if (r.status === 0) Object.assign(f, { status: 'ok', message: `${f.message} -> fixed`, fix: undefined })
     else f.message += ` (fix failed: ${r.stderr.trim().split('\n')[0]})`
+  }
+  if (repo) {
+    // Trust the re-read, not the exit code.
+    for (const live of checkRepo(repo.nameWithOwner, repo.defaultBranchRef.name)) {
+      const i = findings.findIndex((f) => f.id === live.id)
+      if (live.status !== 'ok' && findings[i]?.status === 'ok') findings[i] = { ...live, message: `${live.message} (fix ran but the setting did not change)` }
+    }
   }
 }
 

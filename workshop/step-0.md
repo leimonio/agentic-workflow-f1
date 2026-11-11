@@ -4,7 +4,7 @@
 
 ## Do
 
-1. Click **Use this template** on GitHub, clone your new repo, `cd` into it.
+1. Click **Use this template** on GitHub and make your copy **public** (on GitHub Free, private repos get no branch protection or auto-merge, which step 5 needs). Clone it and `cd` into it.
 2. `nvm use && npm ci`
 3. `npm run doctor`. Every failure prints the exact fix. `npm run doctor -- --fix` applies the repo settings (Actions, auto-merge, branch protection) on your repo.
 4. `npm run verify`. It runs lint, types, unit, stories and e2e. **Exactly one test fails, on purpose.**
