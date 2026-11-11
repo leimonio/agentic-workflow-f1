@@ -7,7 +7,7 @@ jobs:
   # Required check. Compares verify against the baseline from the merge base, so a known
   # failure on main does not block you, but a NEW failure does.
   gate:
-    runs-on: ubuntu-24.04 # pinned: ubuntu-latest (26) apt mirrors failed DNS, 2026-11
+    runs-on: ubuntu-24.04 # pinned: ubuntu-latest is mid-migration to 26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -15,13 +15,14 @@ jobs:
       - uses: actions/setup-node@v7
         with: { node-version-file: .nvmrc, cache: npm }
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # no --with-deps: hosted images already have the libs, and apt mirrors were unreachable from runners (2026-11-11)
+      - run: npx playwright install chromium
       - run: npm run baseline
       - run: npm run gate
 
   # Not required. Posts the "UI Tests" / "UI Review" statuses. A human accepts or rejects in Chromatic.
   chromatic:
-    runs-on: ubuntu-24.04 # pinned: ubuntu-latest (26) apt mirrors failed DNS, 2026-11
+    runs-on: ubuntu-24.04 # pinned: ubuntu-latest is mid-migration to 26
     timeout-minutes: 20
     env:
       CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
