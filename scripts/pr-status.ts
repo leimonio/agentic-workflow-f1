@@ -23,5 +23,5 @@ else {
   console.log(`CI: ${pr.ci}  ${pr.checks.map((c) => `${c.name}=${c.state}`).join(' ')}`)
   console.log(`Chromatic: ${pr.visual}   Visual gate: ${report.visualGate ?? 'not set'}   Human review: ${report.humanReview ?? 'not set'}`)
   console.log(`Threads: ${pr.unresolved} unresolved of ${pr.threads.length}`)
-  for (const t of pr.threads.filter((t) => !t.resolved)) console.log(`  - ${t.path}:${t.line ?? '?'} ${t.author}: ${(t.body.split('\n')[0] ?? '').slice(0, 100)}`)
+  for (const t of pr.threads.filter((t) => !t.resolved)) console.log(`  - ${t.path}:${t.line ?? '?'} ${(t.body.split('\n')[0] ?? '').slice(0, 100)}`)
 }
