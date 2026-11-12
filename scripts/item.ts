@@ -3,6 +3,8 @@
 //   npm run item -- reset <id> build|plan|verify
 //   npm run item -- idea <id> "<title>" "<the idea>"
 //   npm run item -- approve <id>
+//   npm run item -- review <id> approved|changes   (human gate)
+//   npm run item -- visual <id> accepted|rejected  (human gate, when Chromatic is not set up)
 //   npm run item -- show <id>
 import { trackerFromEnv } from './lib/tracker-from-env.ts'
 import { logLine, type Item } from './lib/tracker.ts'
@@ -22,11 +24,19 @@ else if (cmd === 'approve' && id) {
   await t.update(id, { planApproved: true })
   await t.log(id, logLine('Plan', 'approved by human'))
 }
+// The two PR gates. Human review = Approved is the merge permission; visual is the fallback when Chromatic is not set up.
+else if (cmd === 'review' && id && (a === 'approved' || a === 'changes')) {
+  await t.update(id, { humanReview: a === 'approved' ? 'Approved' : 'Changes requested' })
+  await t.log(id, logLine('Human review', `${a} by human`))
+} else if (cmd === 'visual' && id && (a === 'accepted' || a === 'rejected')) {
+  await t.update(id, { visual: a === 'accepted' ? 'Accepted' : 'Rejected' })
+  await t.log(id, logLine('Visual', `${a} by human`))
+}
 else if (cmd === 'reset' && id && a && resets[a]) {
   await t.update(id, resets[a])
   await t.log(id, logLine(a, 'reset by human'))
 } else if (!(cmd === 'show' && id)) {
-  console.error('usage: item add <id> "<title>" "<task>" | idea <id> "<title>" "<idea>" | approve <id> | reset <id> build|plan|verify | show <id>')
+  console.error('usage: item add <id> "<title>" "<task>" | idea <id> "<title>" "<idea>" | approve <id> | review <id> approved|changes | visual <id> accepted|rejected | reset <id> build|plan|verify | show <id>')
   process.exit(2)
 }
 console.log(JSON.stringify(await t.get(id), null, 2))

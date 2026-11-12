@@ -4,7 +4,7 @@ import { COLUMNS } from '../lib/board-columns.ts'
 import { logLine, type Item } from '../lib/tracker.ts'
 import { trackerFromEnv } from '../lib/tracker-from-env.ts'
 
-export const HUMAN_ONLY: (keyof Item)[] = ['planApproved', 'humanReview']
+export const HUMAN_ONLY: (keyof Item)[] = ['planApproved', 'humanReview', 'visual']
 
 const [id, ...pairs] = process.argv.slice(2)
 if (!id || !pairs.length) {
