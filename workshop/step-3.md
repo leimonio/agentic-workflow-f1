@@ -53,5 +53,6 @@ npm run dispatch            # builds the first task whose dependencies are done
 ```
 
 On monday: put `MONDAY_API_TOKEN` in `.env`, `npm run board:setup` (twice: the second run prints "nothing created"), set `AGENT_TRACKER=monday`, and tick **Plan approved** on the board instead of `item approve`.
+On monday, `item idea|add` print the id monday assigns (`created monday item 3353935995`); use that id afterwards, the `<id>` you typed is only a label.
 
 `dispatch` uses the item list from the start of its pass, so a task that unblocks mid-pass is built on the next pass.
