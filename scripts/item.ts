@@ -7,7 +7,8 @@
 import { trackerFromEnv } from './lib/tracker-from-env.ts'
 import { logLine, type Item } from './lib/tracker.ts'
 
-const [cmd, id, a, b] = process.argv.slice(2)
+const [cmd, label, a, b] = process.argv.slice(2)
+let id = label
 const t = trackerFromEnv()
 const resets: Record<string, Partial<Item>> = {
   build: { build: 'Queued', attempts: 0, needsHuman: '' },
@@ -15,8 +16,14 @@ const resets: Record<string, Partial<Item>> = {
   verify: { verify: 'Watching', needsHuman: '' },
 }
 
-if (cmd === 'add' && id && a && b) await t.update(id, { title: a, type: 'Task', description: b, build: 'Queued', attempts: 0 })
-else if (cmd === 'idea' && id && a && b) await t.update(id, { title: a, type: 'Idea', description: b, plan: 'Not started' })
+// monday assigns numeric ids, so there <id> is only a label and the real id is printed.
+const put = async (fields: Omit<Item, 'id'>) => {
+  if (process.env.AGENT_TRACKER !== 'monday') return t.update(id ?? '', fields)
+  id = await t.create(fields)
+  console.log(`created monday item ${id}`)
+}
+if (cmd === 'add' && id && a && b) await put({ title: a, type: 'Task', description: b, build: 'Queued', attempts: 0 })
+else if (cmd === 'idea' && id && a && b) await put({ title: a, type: 'Idea', description: b, plan: 'Not started' })
 // The human ticking "Plan approved". On monday you tick the checkbox instead.
 else if (cmd === 'approve' && id) {
   await t.update(id, { planApproved: true })
