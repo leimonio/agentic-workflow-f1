@@ -61,7 +61,7 @@ async function pass() {
     else if (next.stage === 'queue') await queue(item, all)
     else if (next.stage === 'build') await build(item, await tracker.list())
     else if (next.stage === 'verify') run('babysit', item.id)
-    else console.log(`[dispatch ${item.id}] merge arrives in step 5`)
+    else run('merge', item.id)
   }
 }
 

@@ -28,6 +28,7 @@
     "board:read": "tsx scripts/board/read.ts",
     "board:write": "tsx scripts/board/write.ts",
     "pr:status": "tsx scripts/pr-status.ts",
+    "merge": "tsx scripts/merge.ts",
     "babysit": "tsx scripts/babysit.ts"
   },
   "dependencies": {

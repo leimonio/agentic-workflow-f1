@@ -26,6 +26,8 @@ A small React app (race calendar, race results, home) built for the workshop
 | `npm run build:loop -- <id>` | The build loop: one agent call per attempt, gate after each, max 3. Escalates with a handoff. |
 | `npm run plan:loop -- <id>` | Plan agent, schema check, plan-review agent, 2 retries. Writes the task items. |
 | `npm run dispatch [-- --watch] [-- --pr]` | One pass over the tracker; runs whatever stage each item is at. |
+| `npm run pr:status -- <id>` / `babysit -- <id>` | PR checks and threads; one verify tick (triage, fix, reply, resolve or escalate). |
+| `npm run merge -- <id>` | The merge gate: CI green, 0 threads, Visual Accepted, Human review Approved, mergeable → squash-merge. Else Blocked + handoff. |
 | `npm run item -- idea\|add\|approve\|reset\|show` | Human CLI for the tracker. `approve` is the human plan gate. |
 | `npm run board:setup` / `board:read` / `board:write` | monday board: create or complete it (idempotent), read items, write non-human fields. |
 | `npm run data:fetch` | Author-only. Re-downloads the season snapshot. The app and tests never use the network. |
