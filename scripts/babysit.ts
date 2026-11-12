@@ -58,9 +58,12 @@ for (const t of pr.threads.filter((t) => !t.resolved && !state.triaged[t.id])) {
     tools: ['Read', 'Glob', 'Grep', 'Bash(gh pr diff *)'],
     budgetUsd: 0.5,
   }).verdict
-  const r: Triage = v.verdict ? v : { ...v, verdict: 'discussion', evidence: '', reply: `(triage failed: ${v.summary})` }
-  state.triaged[t.id] = r
-  say(`  → ${r.verdict}: ${r.summary}`)
+  if (v.status !== 'ok' || !v.verdict) {
+    say(`  → triage failed, retried next tick: ${v.summary}`)
+    continue
+  }
+  state.triaged[t.id] = v
+  say(`  → ${v.verdict}: ${v.summary}`)
   save()
 }
 
@@ -71,8 +74,9 @@ if (pr.ci === 'Pending') state.ciPendingSince ??= new Date().toISOString()
 else delete state.ciPendingSince
 save()
 const ciWaitMin = state.ciPendingSince ? (Date.now() - Date.parse(state.ciPendingSince)) / 60_000 : 0
-const action = verifyAction({ ci: pr.ci, necessary: necessary.length, discussions: discussions.length, rounds: state.rounds, ciWaitMin })
-say(`CI ${pr.ci}, ${necessary.length} to fix, ${discussions.length} for a human, round ${state.rounds}/${MAX_FIX_ROUNDS} → ${action.do}`)
+const untriaged = open.filter((t) => !tri(t)).length
+const action = verifyAction({ ci: pr.ci, untriaged, necessary: necessary.length, discussions: discussions.length, rounds: state.rounds, ciWaitMin })
+say(`CI ${pr.ci}, ${necessary.length} to fix, ${untriaged} untriaged, ${discussions.length} for a human, round ${state.rounds}/${MAX_FIX_ROUNDS} → ${action.do}`)
 
 if (action.do === 'wait') await tracker.update(id, { verify: 'Watching' })
 else if (action.do === 'stable') {

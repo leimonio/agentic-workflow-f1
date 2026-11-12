@@ -31,6 +31,7 @@ describe('verifyAction', () => {
     expect(verifyAction({ ...s, discussions: 1 })).toMatchObject({ do: 'escalate' })
     expect(verifyAction({ ...s, ci: 'Pending', ciWaitMin: 14 })).toEqual({ do: 'wait' })
     expect(verifyAction({ ...s, ci: 'Pending', ciWaitMin: 15 })).toMatchObject({ do: 'escalate' })
+    expect(verifyAction({ ...s, untriaged: 1 })).toEqual({ do: 'wait' })
     expect(verifyAction(s)).toEqual({ do: 'stable' })
   })
 })

@@ -41,11 +41,12 @@ export function readChecks(rollup: Rollup[]): { ci: Ci; checks: Check[]; visual:
 export type VerifyAction = { do: 'fix' } | { do: 'escalate'; why: string } | { do: 'wait' } | { do: 'stable' }
 
 /** One babysit tick. `necessary` and `discussions` are unresolved threads after triage. */
-export function verifyAction(s: { ci: Ci; necessary: number; discussions: number; rounds: number; ciWaitMin: number }): VerifyAction {
+export function verifyAction(s: { ci: Ci; untriaged?: number; necessary: number; discussions: number; rounds: number; ciWaitMin: number }): VerifyAction {
   const work = s.necessary > 0 || s.ci === 'Failing'
   if (work && s.rounds >= MAX_FIX_ROUNDS) return { do: 'escalate', why: `${MAX_FIX_ROUNDS} fix rounds used and the PR still needs work` }
   if (work) return { do: 'fix' }
   if (s.discussions > 0) return { do: 'escalate', why: `${s.discussions} thread(s) need a human answer` }
+  if (s.untriaged) return { do: 'wait' } // triage failed this tick; never call a PR stable with unread threads
   if (s.ci === 'Pending') return s.ciWaitMin >= CI_WAIT_MIN ? { do: 'escalate', why: `CI still pending after ${CI_WAIT_MIN} min` } : { do: 'wait' }
   return { do: 'stable' }
 }
