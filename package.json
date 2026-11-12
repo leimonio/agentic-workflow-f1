@@ -22,6 +22,7 @@
     "visual:status": "tsx scripts/visual-status.ts",
     "build:loop": "tsx scripts/build/loop.ts",
     "item": "tsx scripts/item.ts",
+    "seed": "tsx scripts/seed.ts",
     "plan:loop": "tsx scripts/plan/loop.ts",
     "dispatch": "tsx scripts/dispatch.ts",
     "board:setup": "tsx scripts/board/setup.ts",

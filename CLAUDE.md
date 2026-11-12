@@ -30,6 +30,7 @@ A small React app (race calendar, race results, home) built for the workshop
 | `npm run merge -- <id>` | The merge gate: CI green, 0 threads, Visual Accepted, Human review Approved, mergeable → squash-merge. Else Blocked + handoff. |
 | `npm run item -- idea\|add\|approve\|reset\|show` | Human CLI for the tracker. `approve` is the human plan gate. |
 | `npm run board:setup` / `board:read` / `board:write` | monday board: create or complete it (idempotent), read items, write non-human fields. |
+| `npm run seed -- --step 3\|4\|5` | Catch-up: recreates the tracker items (and for 4-5 the `seed/task-pr` PR) a step starts from. Idempotent. |
 | `npm run data:fetch` | Author-only. Re-downloads the season snapshot. The app and tests never use the network. |
 
 Workflow for any change: `npm run baseline` once, edit, `npm run gate` until it reports 0 new failures.
