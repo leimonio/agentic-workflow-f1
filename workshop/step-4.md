@@ -17,3 +17,29 @@
 
 - `pr:status` shows CI green, 0 unresolved threads.
 - You triaged one thread as discussion and saw the escalation.
+
+## What changed on `step-4-solution`
+
+| File | What |
+|---|---|
+| `scripts/lib/pr.ts` | Pure and tested: `readChecks` (CI vs Chromatic from gh's rollup), `verifyAction` (fix / escalate / wait / stable, with the 3-round and 15-minute bounds), `mergeBlockers`. |
+| `scripts/lib/github.ts` | The gh calls: PR + review threads (GraphQL), reply to a thread, resolve a thread. |
+| `scripts/pr-status.ts` | `npm run pr:status -- <item-id\|pr>`: CI, checks, Chromatic, threads, and the tracker's two human gates. |
+| `scripts/babysit.ts` | One tick: triage each new thread (one read-only agent call), then fix the necessary ones in one round (gate twice, push, reply, resolve) or escalate discussions with a drafted reply. State in `.agent/babysit/<id>.json`. |
+| `.claude/skills/review`, `babysit` | `review` posts line comments as you. `babysit` has a triage mode and a fix mode; it never posts. |
+| `scripts/item.ts` | `review <id> approved\|changes` and `visual <id> accepted\|rejected` (the human gates; `visual` is for when Chromatic is not set up). |
+| `scripts/dispatch.ts` | The `verify` stage runs babysit. |
+| `scripts/lib/agent.ts` | The prompt goes on stdin (a skill's `---` frontmatter was read as a CLI flag). |
+
+### Try it
+
+```bash
+npm run dispatch -- --pr                 # builds the next task and opens its PR
+claude "/review <pr-number>"             # or ask a neighbour to review
+npm run pr:status -- <item-id>
+npm run dispatch                         # verify → babysit: triage, fix, reply, resolve
+npm run dispatch                         # discussion threads escalate with a drafted reply
+```
+
+Answer the discussion on GitHub, resolve it, then `npm run item -- reset <item-id> verify`. When CI is green and nothing is open, Verify becomes Stable green and dispatch waits for your two gates:
+`npm run item -- visual <item-id> accepted` (or accept in Chromatic) and `npm run item -- review <item-id> approved`.
