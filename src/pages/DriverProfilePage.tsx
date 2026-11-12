@@ -4,7 +4,7 @@ import { Table, Td, Th } from '@/components/ui/table'
 import { driverById, season } from '@/data/season'
 import { driverProfile } from '@/lib/drivers'
 
-export function DriverPage() {
+export function DriverProfilePage() {
   const id = useParams().id ?? ''
   const driver = driverById(id)
   if (!driver) {
