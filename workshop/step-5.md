@@ -4,6 +4,7 @@
 
 ## Do
 
+0. Behind? On `step-4-solution`, `npm run seed -- --step 5` gives you a babysat task PR that waits only for the two human gates.
 1. `merge` skill runs a script that checks: CI green, 0 open threads, `Visual = Accepted`, `Human review = Approved`, PR mergeable.
 2. If all hold: `gh pr merge --squash`. Otherwise it escalates with what is missing.
 3. Branch protection requires only the `gate` check. `npm run doctor` tells you if it is missing; `-- --fix` sets it.
