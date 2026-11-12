@@ -38,6 +38,18 @@ test('home shows the championship leader', async ({ page }) => {
   await expect(page.getByText(/Championship leader: .+, \d+ pts/)).toBeVisible()
 })
 
+test('driver standings link to a driver profile', async ({ page }) => {
+  await page.goto('/standings/drivers')
+  await page.getByRole('table').getByRole('link').first().click()
+  await expect(page).toHaveURL(/\/drivers\/.+$/)
+  await expect(page.getByRole('table')).toBeVisible()
+})
+
+test('unknown driver shows a not-found message', async ({ page }) => {
+  await page.goto('/drivers/nobody')
+  await expect(page.getByRole('heading', { name: 'Driver not found' })).toBeVisible()
+})
+
 test('unknown race shows a not-found message', async ({ page }) => {
   await page.goto('/races/99')
   await expect(page.getByRole('heading', { name: 'Race not found' })).toBeVisible()
