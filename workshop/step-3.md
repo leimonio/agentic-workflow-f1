@@ -37,7 +37,7 @@
 | `scripts/lib/stage.ts` | `nextStage(item, all)`: the stage rules as one pure, tested function. |
 | `scripts/lib/plan.ts` | The plan JSON schema and `validatePlan` (files, criteria, test, max 15 files, unknown deps, cycles). |
 | `scripts/plan/loop.ts` | plan agent → schema check → plan-review agent, 2 retries, then `Awaiting approval` or a handoff. |
-| `scripts/dispatch.ts` | One pass: `queue` is deterministic, `build` branches (stacked on an unmerged dependency), runs `build:loop`, commits. `--pr` pushes and opens the PR. |
+| `scripts/dispatch.ts` | One pass: `queue` is deterministic, `build` branches from the current branch (or stacks on an unmerged dependency), runs `build:loop` with that base for the baseline, commits. A loop that exits without a handoff is reported as a crash, not an escalation. `--pr` pushes and opens the PR. |
 | `.claude/skills/plan`, `plan-review` | The two read-only skills. |
 | `scripts/item.ts` | `idea` and `approve` (the local human plan gate). |
 | `src/lib/drivers.ts` | Task 1 of the driver profile plan, built by dispatch. |
@@ -45,7 +45,7 @@
 ### Try it (local tracker)
 
 ```bash
-export AGENT_TRACKER=local AGENT_BASE_BRANCH=step-3-solution
+export AGENT_TRACKER=local   # build branches start from the branch you are on (AGENT_BASE_BRANCH overrides)
 npm run item -- idea driver-profile "Driver profile page" "A page per driver at /drivers/:id with name, team, points, wins and race results. Link driver names in the standings to it."
 npm run dispatch            # plans: 2-3 tasks, Plan = Awaiting approval
 npm run item -- approve driver-profile
