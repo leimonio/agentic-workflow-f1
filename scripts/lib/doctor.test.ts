@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nodeFinding, repoFindings, type RepoFacts } from './doctor.ts'
+import { nodeFinding, platformFinding, playwrightFinding, repoFindings, toolFinding, type RepoFacts } from './doctor.ts'
 
 const good: RepoFacts = { slug: 'o/r', allowAutoMerge: true, actionsEnabled: true, requiredChecks: ['gate'], branch: 'main', isPrivate: false }
 
@@ -34,5 +34,21 @@ describe('doctor', () => {
     const f = repoFindings({ ...good, isPrivate: true, allowAutoMerge: false, requiredChecks: null })
     expect(f.filter((x) => x.message.includes('private repo'))).toHaveLength(2)
     expect(repoFindings({ ...good, isPrivate: true }).every((x) => !x.message.includes('private repo'))).toBe(true)
+  })
+
+  it('tools: a missing gh gets an install hint per OS, a logged-out gh gets the login', () => {
+    expect(toolFinding('gh', 'darwin', false).fix).toContain('brew install gh')
+    expect(toolFinding('gh', 'linux', false).fix).toContain('install_linux.md')
+    expect(toolFinding('gh', 'freebsd', false).fix).toContain('cli.github.com')
+    expect(toolFinding('gh', 'darwin', true, false)).toMatchObject({ status: 'fail', fix: 'Run: gh auth login' })
+    expect(toolFinding('git', 'linux', true).status).toBe('ok')
+  })
+
+  it('os: native Windows points to WSL; playwright on Linux mentions the system libraries', () => {
+    expect(platformFinding('win32')).toMatchObject({ status: 'fail', fix: expect.stringContaining('wsl --install') })
+    expect(platformFinding('linux').status).toBe('ok')
+    expect(playwrightFinding('linux', false).message).toContain('install-deps')
+    expect(playwrightFinding('darwin', false).message).not.toContain('install-deps')
+    expect(playwrightFinding('darwin', false).fix).toBe('npx playwright install chromium')
   })
 })

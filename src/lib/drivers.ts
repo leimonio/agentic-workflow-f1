@@ -2,9 +2,7 @@ import type { Race } from '@/data/types'
 
 // A driver's team is the one they last classified with.
 export const teamOf = (races: Race[], driverId: string): string | undefined =>
-  races
-    .findLast((r) => r.results.some((x) => x.driverId === driverId))
-    ?.results.find((x) => x.driverId === driverId)?.constructorId
+  races.findLast((r) => r.results.some((x) => x.driverId === driverId))?.results.find((x) => x.driverId === driverId)?.constructorId
 
 export interface DriverRaceResult {
   round: number

@@ -22,6 +22,8 @@ else {
   for (const f of report.newFailures) console.log(`NEW FAILURE  ${f.id}\n             ${f.message}`)
   for (const f of report.preExisting) console.log(`pre-existing ${f.id}`)
   for (const f of report.fixed) console.log(`fixed        ${f.id}`)
-  console.log(`gate: ${ok ? 'PASS' : 'FAIL'} (${report.newFailures.length} new, ${report.preExisting.length} pre-existing, ${report.fixed.length} fixed, ${report.passed} passed)`)
+  console.log(
+    `gate: ${ok ? 'PASS' : 'FAIL'} (${report.newFailures.length} new, ${report.preExisting.length} pre-existing, ${report.fixed.length} fixed, ${report.passed} passed)`,
+  )
 }
 process.exit(ok ? 0 : 1)

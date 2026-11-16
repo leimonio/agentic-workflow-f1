@@ -26,7 +26,10 @@ export function mondayTracker(): Tracker {
   return {
     async list() {
       // shortcut: first 500 items only, page with the cursor when a board grows past that.
-      const d = await gql<{ boards: { items_page: { items: RawItem[] } }[] }>(`query ($b: [ID!]) { boards(ids: $b) { items_page(limit: 500) { items { ${ITEM_FIELDS} } } } }`, { b: [boardId] })
+      const d = await gql<{ boards: { items_page: { items: RawItem[] } }[] }>(
+        `query ($b: [ID!]) { boards(ids: $b) { items_page(limit: 500) { items { ${ITEM_FIELDS} } } } }`,
+        { b: [boardId] },
+      )
       return (d.boards[0]?.items_page.items ?? []).map(toItem)
     },
     async get(id) {

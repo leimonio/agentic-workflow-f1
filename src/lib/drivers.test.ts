@@ -5,10 +5,23 @@ import { driverProfile, teamOf } from './drivers'
 import { driverStandings } from './standings'
 
 const row = (driverId: string, constructorId: string, position: number, points: number): ResultRow => ({
-  position, driverId, constructorId, grid: position, laps: 50, status: 'Finished', points,
+  position,
+  driverId,
+  constructorId,
+  grid: position,
+  laps: 50,
+  status: 'Finished',
+  points,
 })
 const race = (round: number, results: ResultRow[], sprint?: ResultRow[]): Race => ({
-  round, name: `R${round}`, date: '2025-01-01', circuit: 'c', locality: 'l', country: 'x', results, ...(sprint ? { sprint } : {}),
+  round,
+  name: `R${round}`,
+  date: '2025-01-01',
+  circuit: 'c',
+  locality: 'l',
+  country: 'x',
+  results,
+  ...(sprint ? { sprint } : {}),
 })
 
 describe('teamOf', () => {
@@ -23,10 +36,7 @@ describe('teamOf', () => {
 })
 
 describe('driverProfile', () => {
-  const races = [
-    race(1, [row('a', 'x', 1, 25), row('b', 'y', 2, 18)], [row('a', 'x', 3, 6)]),
-    race(2, [row('b', 'y', 1, 25)]),
-  ]
+  const races = [race(1, [row('a', 'x', 1, 25), row('b', 'y', 2, 18)], [row('a', 'x', 3, 6)]), race(2, [row('b', 'y', 1, 25)])]
 
   it('sums points incl. sprint, counts GP wins and lists per-race results', () => {
     const p = driverProfile(races, 'a')

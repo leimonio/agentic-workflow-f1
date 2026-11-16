@@ -40,7 +40,9 @@ describe('validatePlan', () => {
   it('rejects unknown dependencies, duplicate keys and cycles', () => {
     expect(validatePlan([t('t1', { dependsOn: ['t9'] })])).toEqual(['task t1: depends on unknown task t9'])
     expect(validatePlan([t('t1'), t('t1')])).toContain('task t1: duplicate key')
-    expect(validatePlan([t('a', { dependsOn: ['c'] }), t('b', { dependsOn: ['a'] }), t('c', { dependsOn: ['b'] })])).toEqual(['circular dependency: a → c → b → a'])
+    expect(validatePlan([t('a', { dependsOn: ['c'] }), t('b', { dependsOn: ['a'] }), t('c', { dependsOn: ['b'] })])).toEqual([
+      'circular dependency: a → c → b → a',
+    ])
     expect(validatePlan([t('a', { dependsOn: ['a'] })])).toEqual(['circular dependency: a → a'])
   })
 })

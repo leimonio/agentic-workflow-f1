@@ -38,7 +38,11 @@ async function build(item: Item, all: Item[]) {
     await tracker.update(item.id, { branch })
     if (!args.includes('--pr')) return console.log(`[dispatch ${item.id}] committed on ${branch}. PR skipped (pass --pr).`)
     git('push', '-u', 'origin', branch)
-    const pr = execFileSync('gh', ['pr', 'create', '--head', branch, '--base', from, '--title', item.title, '--body', `${item.description}\n\n${item.planDetails ?? ''}`], { encoding: 'utf8' }).trim()
+    const pr = execFileSync(
+      'gh',
+      ['pr', 'create', '--head', branch, '--base', from, '--title', item.title, '--body', `${item.description}\n\n${item.planDetails ?? ''}`],
+      { encoding: 'utf8' },
+    ).trim()
     await tracker.update(item.id, { pr, ci: 'Pending', verify: 'Watching', merge: 'Waiting' })
     await tracker.log(item.id, logLine('Build', `PR opened ${pr}`))
     console.log(`[dispatch ${item.id}] PR ${pr}`)

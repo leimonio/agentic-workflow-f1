@@ -98,4 +98,14 @@ function findCycle(tasks: PlanTask[]): string[] | null {
 
 /** The text stored in the task's Plan details column. */
 export const renderTask = (t: PlanTask) =>
-  [`Responsibility: ${t.responsibility}`, '', 'Files:', ...t.files.map((f) => `- ${f}`), '', 'Acceptance:', ...t.acceptance.map((a) => `- ${a}`), '', `Test: ${t.test}`].join('\n')
+  [
+    `Responsibility: ${t.responsibility}`,
+    '',
+    'Files:',
+    ...t.files.map((f) => `- ${f}`),
+    '',
+    'Acceptance:',
+    ...t.acceptance.map((a) => `- ${a}`),
+    '',
+    `Test: ${t.test}`,
+  ].join('\n')

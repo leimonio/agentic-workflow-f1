@@ -6,8 +6,20 @@ export const MAX_FIX_ROUNDS = 3
 export const CI_WAIT_MIN = 15
 
 export type Ci = NonNullable<Item['ci']>
-export interface Check { name: string; state: 'pending' | 'success' | 'failure' }
-export interface Thread { id: string; resolved: boolean; path: string; line: number | null; author: string; body: string; url: string; replies: number }
+export interface Check {
+  name: string
+  state: 'pending' | 'success' | 'failure'
+}
+export interface Thread {
+  id: string
+  resolved: boolean
+  path: string
+  line: number | null
+  author: string
+  body: string
+  url: string
+  replies: number
+}
 export interface PrStatus {
   number: number
   url: string
@@ -23,15 +35,21 @@ export interface PrStatus {
 }
 
 // gh's statusCheckRollup mixes check runs (Actions) and commit statuses (Chromatic).
-type Rollup = { __typename: 'CheckRun'; name: string; status: string; conclusion: string } | { __typename: 'StatusContext'; context: string; state: string; description: string; targetUrl: string }
+type Rollup =
+  | { __typename: 'CheckRun'; name: string; status: string; conclusion: string }
+  | { __typename: 'StatusContext'; context: string; state: string; description: string; targetUrl: string }
 
 export function readChecks(rollup: Rollup[]): { ci: Ci; checks: Check[]; visual: PrStatus['visual'] } {
   const checks: Check[] = rollup.flatMap((r) =>
-    r.__typename !== 'CheckRun' ? [] : [{ name: r.name, state: r.status !== 'COMPLETED' ? 'pending' : ['SUCCESS', 'SKIPPED', 'NEUTRAL'].includes(r.conclusion) ? 'success' : 'failure' }],
+    r.__typename !== 'CheckRun'
+      ? []
+      : [{ name: r.name, state: r.status !== 'COMPLETED' ? 'pending' : ['SUCCESS', 'SKIPPED', 'NEUTRAL'].includes(r.conclusion) ? 'success' : 'failure' }],
   )
   const ci: Ci = !checks.length || checks.some((c) => c.state === 'pending') ? 'Pending' : checks.some((c) => c.state === 'failure') ? 'Failing' : 'Green'
   const statuses = rollup.flatMap((r) =>
-    r.__typename === 'StatusContext' ? [{ context: r.context, state: r.state.toLowerCase(), description: r.description, target_url: r.targetUrl } as Status] : [],
+    r.__typename === 'StatusContext'
+      ? [{ context: r.context, state: r.state.toLowerCase(), description: r.description, target_url: r.targetUrl } as Status]
+      : [],
   )
   const v = summarize(statuses).visual
   const visual = v === 'not-run' ? 'not-run' : v === 'accepted' ? 'Accepted' : v === 'pending-review' ? 'Pending review' : 'Rejected'

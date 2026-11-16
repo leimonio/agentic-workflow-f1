@@ -11,7 +11,9 @@ export function DriverProfilePage() {
     return (
       <div>
         <h1 className="text-2xl font-bold">Driver not found</h1>
-        <Link className="underline" to="/standings/drivers">Back to the standings</Link>
+        <Link className="underline" to="/standings/drivers">
+          Back to the standings
+        </Link>
       </div>
     )
   }
@@ -25,12 +27,25 @@ export function DriverProfilePage() {
       </p>
       <Table>
         <caption className="sr-only">{name} 2025 results</caption>
-        <thead><tr><Th>Round</Th><Th>Race</Th><Th>Grid</Th><Th>Pos</Th><Th>Status</Th><Th>Pts</Th></tr></thead>
+        <thead>
+          <tr>
+            <Th>Round</Th>
+            <Th>Race</Th>
+            <Th>Grid</Th>
+            <Th>Pos</Th>
+            <Th>Status</Th>
+            <Th>Pts</Th>
+          </tr>
+        </thead>
         <tbody>
           {profile.results.map((r) => (
             <tr key={r.round}>
               <Td>{r.round}</Td>
-              <Td><Link className="underline" to={`/races/${r.round}`}>{r.name}</Link></Td>
+              <Td>
+                <Link className="underline" to={`/races/${r.round}`}>
+                  {r.name}
+                </Link>
+              </Td>
               <Td>{r.grid}</Td>
               <Td>{r.position}</Td>
               <Td>{r.status}</Td>

@@ -10,8 +10,17 @@ import { runBaseline, runGate } from './lib/run-gate.ts'
 import { logLine } from './lib/tracker.ts'
 import { trackerFromEnv } from './lib/tracker-from-env.ts'
 
-interface Triage extends Verdict { verdict: 'necessary' | 'discussion'; evidence: string; reply: string }
-interface State { rounds: number; ciPendingSince?: string; triaged: Record<string, Triage>; replied: string[] }
+interface Triage extends Verdict {
+  verdict: 'necessary' | 'discussion'
+  evidence: string
+  reply: string
+}
+interface State {
+  rounds: number
+  ciPendingSince?: string
+  triaged: Record<string, Triage>
+  replied: string[]
+}
 
 const TRIAGE_SCHEMA = {
   type: 'object',
@@ -53,11 +62,14 @@ await tracker.update(id, { ci: pr.ci, openThreads: pr.unresolved, ...(pr.visual 
 // Triage: one read-only agent call per new unresolved thread, never repeated.
 for (const t of pr.threads.filter((t) => !t.resolved && !state.triaged[t.id])) {
   say(`triage ${t.path}:${t.line ?? '?'} (${t.author})`)
-  const v = runAgent<Triage>(`${SKILL}\n\nMODE: triage\nPR: ${pr.url}\nTask acceptance:\n${item.planDetails ?? item.description}\n\nThread on ${t.path}:${t.line ?? '?'}:\n${t.body}`, {
-    schema: TRIAGE_SCHEMA,
-    tools: ['Read', 'Glob', 'Grep', 'Bash(gh pr diff *)'],
-    budgetUsd: 0.5,
-  }).verdict
+  const v = runAgent<Triage>(
+    `${SKILL}\n\nMODE: triage\nPR: ${pr.url}\nTask acceptance:\n${item.planDetails ?? item.description}\n\nThread on ${t.path}:${t.line ?? '?'}:\n${t.body}`,
+    {
+      schema: TRIAGE_SCHEMA,
+      tools: ['Read', 'Glob', 'Grep', 'Bash(gh pr diff *)'],
+      budgetUsd: 0.5,
+    },
+  ).verdict
   if (v.status !== 'ok' || !v.verdict) {
     say(`  → triage failed, retried next tick: ${v.summary}`)
     continue
@@ -76,7 +88,9 @@ save()
 const ciWaitMin = state.ciPendingSince ? (Date.now() - Date.parse(state.ciPendingSince)) / 60_000 : 0
 const untriaged = open.filter((t) => !tri(t)).length
 const action = verifyAction({ ci: pr.ci, untriaged, necessary: necessary.length, discussions: discussions.length, rounds: state.rounds, ciWaitMin })
-say(`CI ${pr.ci}, ${necessary.length} to fix, ${untriaged} untriaged, ${discussions.length} for a human, round ${state.rounds}/${MAX_FIX_ROUNDS} → ${action.do}`)
+say(
+  `CI ${pr.ci}, ${necessary.length} to fix, ${untriaged} untriaged, ${discussions.length} for a human, round ${state.rounds}/${MAX_FIX_ROUNDS} → ${action.do}`,
+)
 
 if (action.do === 'wait') await tracker.update(id, { verify: 'Watching' })
 else if (action.do === 'stable') {
@@ -87,7 +101,10 @@ else if (action.do === 'stable') {
   await tracker.handoff(id, {
     stage: 'Verify',
     attempts: state.rounds,
-    failing: [...(pr.ci === 'Failing' ? pr.checks.filter((c) => c.state === 'failure').map((c) => `check ${c.name}`) : []), ...discussions.map((t) => `${t.url}`)],
+    failing: [
+      ...(pr.ci === 'Failing' ? pr.checks.filter((c) => c.state === 'failure').map((c) => `check ${c.name}`) : []),
+      ...discussions.map((t) => `${t.url}`),
+    ],
     tried: [`${state.rounds} fix round(s)`, ...discussions.map((t) => `Drafted reply for ${t.path}:${t.line ?? '?'}: "${tri(t)?.reply}"`)],
     question: action.why + '. Post or edit the drafted replies and resolve the threads, or say what to change.',
     resume: `Resolve the threads on GitHub, then \`npm run item -- reset ${id} verify\` (or set Verify = Watching on the board).`,
@@ -124,7 +141,12 @@ async function fix(threads: Thread[]) {
       return say(`round ${state.rounds} did not land (${stable ? 'no change' : 'gate failed'}); next tick decides`)
     }
     git('add', '-A')
-    git('commit', '-q', '-m', `Address review: ${threads.map((t) => `${t.path}:${t.line ?? '?'}`).join(', ') || 'red CI'}\n\nbabysit round ${state.rounds} for ${id}`)
+    git(
+      'commit',
+      '-q',
+      '-m',
+      `Address review: ${threads.map((t) => `${t.path}:${t.line ?? '?'}`).join(', ') || 'red CI'}\n\nbabysit round ${state.rounds} for ${id}`,
+    )
     git('push', '-q', 'origin', pr.head)
     const sha = git('rev-parse', '--short', 'HEAD')
     for (const t of threads) {
