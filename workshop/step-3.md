@@ -8,6 +8,7 @@
 2. `npm run board:setup` (idempotent: second run changes nothing). Needs `MONDAY_API_TOKEN` in `.env`.
 3. `board:read` and `board:write` are thin CLIs over `Tracker`.
 4. `npm run dispatch` does one pass: the pure `nextStage(item)` decides each item's stage, dispatch runs it. `-- --watch` repeats every 60 s (demo only).
+   Build branches (`agent/<id>`) start from the branch you run dispatch from (or an unmerged dependency's branch), not from `main`: your earlier steps are not on `main`. Pass that branch to the build loop as `AGENT_BASE_BRANCH` so the baseline matches it. If the loop exits without a handoff, it crashed: say so, don't send the human to an old handoff.
 5. `plan` skill: idea "Driver profile page" becomes 2–3 tasks. Each task has one responsibility statement, files to touch (max 15 per task), acceptance criteria and a test. A script validates this schema (2 retries). A plan-review agent judges single responsibility.
 6. **Human gate:** you set `Plan approved`. The agent never does.
 7. `build-feature` now picks up Ready tasks and writes Build columns through `Tracker`.

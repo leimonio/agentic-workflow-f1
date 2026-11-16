@@ -7,7 +7,8 @@ import { flag, option } from './lib/args.ts'
 
 const git = (...a: string[]) => execFileSync('git', a, { encoding: 'utf8' }).trim()
 const hasRef = (ref: string) => spawnSync('git', ['rev-parse', '--verify', '-q', ref]).status === 0
-const baseRef = option('base') ?? (hasRef('origin/main') ? 'origin/main' : 'main')
+// dispatch sets AGENT_BASE_BRANCH to the branch a build starts from, so the baseline matches it.
+const baseRef = option('base') ?? process.env.AGENT_BASE_BRANCH ?? (hasRef('origin/main') ? 'origin/main' : 'main')
 const mergeBase = git('merge-base', 'HEAD', baseRef)
 const out = path.resolve('.agent/baseline.json')
 
