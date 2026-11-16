@@ -15,7 +15,11 @@ export function HomePage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Formula 1 2025</h1>
-      {leader && <p>Championship leader: {leaderName}, {leader.points} pts</p>}
+      {leader && (
+        <p>
+          Championship leader: {leaderName}, {leader.points} pts
+        </p>
+      )}
       <Card aria-label="Last race">
         <CardTitle>Last race: {race.name}</CardTitle>
         <p className="text-sm text-muted-foreground">

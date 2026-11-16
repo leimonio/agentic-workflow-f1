@@ -16,7 +16,9 @@ export function localTracker(dir = '.agent/items'): Tracker {
   return {
     async list() {
       if (!existsSync(dir)) return []
-      return readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => read(f.slice(0, -5)))
+      return readdirSync(dir)
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => read(f.slice(0, -5)))
     },
     async get(id) {
       return read(id)

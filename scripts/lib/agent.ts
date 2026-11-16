@@ -53,8 +53,13 @@ export function runAgent(prompt: string, opts: { tools?: string[]; schema?: stri
   try {
     out = JSON.parse(r.stdout)
   } catch {
-    return { verdict: { status: 'failed', summary: `claude -p gave no JSON (exit ${r.status}): ${(r.stderr ?? '').trim().slice(0, 200)}` }, costUsd: 0, seconds: 0 }
+    return {
+      verdict: { status: 'failed', summary: `claude -p gave no JSON (exit ${r.status}): ${(r.stderr ?? '').trim().slice(0, 200)}` },
+      costUsd: 0,
+      seconds: 0,
+    }
   }
-  const verdict: Verdict = !out.is_error && out.structured_output ? out.structured_output : { status: 'failed', summary: `agent error: ${String(out.result).slice(0, 200)}` }
+  const verdict: Verdict =
+    !out.is_error && out.structured_output ? out.structured_output : { status: 'failed', summary: `agent error: ${String(out.result).slice(0, 200)}` }
   return { verdict, costUsd: out.total_cost_usd ?? 0, seconds: Math.round((out.duration_ms ?? 0) / 1000) }
 }
