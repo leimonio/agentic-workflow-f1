@@ -17,7 +17,10 @@ export function nextStage(item: Item, all: Item[]): Next {
 
   if (item.pr && item.merge !== 'Merged') {
     if (item.verify === 'Stable green') {
-      const missing = [item.visual !== 'Accepted' && 'Visual = Accepted (human, in Chromatic)', item.humanReview !== 'Approved' && 'Human review = Approved (human)'].filter(Boolean)
+      const missing = [
+        item.visual !== 'Accepted' && 'Visual = Accepted (human, in Chromatic)',
+        item.humanReview !== 'Approved' && 'Human review = Approved (human)',
+      ].filter(Boolean)
       return missing.length ? { wait: missing.join(', ') } : { stage: 'merge' }
     }
     return item.verify === 'Needs human' ? { wait: 'Verify = Needs human' } : { stage: 'verify' }

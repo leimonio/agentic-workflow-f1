@@ -10,7 +10,11 @@ if (!ref) {
   process.exit(2)
 }
 // monday item ids are numeric too, so try the tracker first; anything it doesn't know is a PR ref.
-const item = ref.startsWith('https:') ? undefined : await trackerFromEnv().get(ref).catch(() => undefined)
+const item = ref.startsWith('https:')
+  ? undefined
+  : await trackerFromEnv()
+      .get(ref)
+      .catch(() => undefined)
 if (item && !item.pr) {
   console.error(`${ref} has no PR yet`)
   process.exit(2)

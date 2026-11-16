@@ -38,12 +38,13 @@ else if (cmd === 'review' && id && (a === 'approved' || a === 'changes')) {
 } else if (cmd === 'visual' && id && (a === 'accepted' || a === 'rejected')) {
   await t.update(id, { visual: a === 'accepted' ? 'Accepted' : 'Rejected' })
   await t.log(id, logLine('Visual', `${a} by human`))
-}
-else if (cmd === 'reset' && id && a && resets[a]) {
+} else if (cmd === 'reset' && id && a && resets[a]) {
   await t.update(id, resets[a])
   await t.log(id, logLine(a, 'reset by human'))
 } else if (!(cmd === 'show' && id)) {
-  console.error('usage: item add <id> "<title>" "<task>" | idea <id> "<title>" "<idea>" | approve <id> | review <id> approved|changes | visual <id> accepted|rejected | reset <id> build|plan|verify | show <id>')
+  console.error(
+    'usage: item add <id> "<title>" "<task>" | idea <id> "<title>" "<idea>" | approve <id> | review <id> approved|changes | visual <id> accepted|rejected | reset <id> build|plan|verify | show <id>',
+  )
   process.exit(2)
 }
 console.log(JSON.stringify(await t.get(id), null, 2))

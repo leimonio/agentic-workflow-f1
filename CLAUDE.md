@@ -19,7 +19,8 @@ A small React app (race calendar, race results, home) built for the workshop
 | Script | What it does |
 |---|---|
 | `npm run doctor [-- --fix]` | Checks Node, git, gh, claude, Playwright, tokens and repo settings. `--fix` applies what it can. |
-| `npm run verify` | lint, types, unit, stories, e2e. Writes `.agent/verify.json` (`{check,id,status,message}[]`). Exits 1 if anything fails. |
+| `npm run format` | Prettier, writes in place. `verify` fails on any unformatted file (`format:<file>`). |
+| `npm run verify` | lint, format (Prettier check), types, unit, stories, e2e. Writes `.agent/verify.json` (`{check,id,status,message}[]`). Exits 1 if anything fails. |
 | `npm run baseline` | Runs verify on the merge base in a clean worktree. Writes `.agent/baseline.json`. |
 | `npm run gate` | Runs verify, diffs against the baseline. Exits 1 only on NEW failures. Reports new, pre-existing and fixed. |
 | `npm run visual:status` | Reads Chromatic's PR statuses for HEAD. Writes `.agent/visual.json`. |

@@ -61,7 +61,11 @@ export function fromColumnValues(values: { id: string; text: string | null; valu
     else if (!text) continue
     else if (c.type === 'numbers') out[c.field] = Number(text)
     else if (c.type === 'link') out[c.field] = cv.value ? JSON.parse(cv.value).url : text
-    else if (c.field === 'dependsOn') out[c.field] = text.split(',').map((s) => s.trim()).filter(Boolean)
+    else if (c.field === 'dependsOn')
+      out[c.field] = text
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
     else out[c.field] = text
   }
   return out as Partial<Item>

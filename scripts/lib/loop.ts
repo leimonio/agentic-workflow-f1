@@ -25,7 +25,11 @@ export function decide(attempts: Attempt[], max = MAX_ATTEMPTS): Decision {
     return { kind: 'escalate', reason: 'the agent asked a question', question: last.question ?? 'The agent needs a decision (no question given).' }
   const prev = attempts.at(-2)
   if (prev && signature(prev) !== '' && signature(prev) === signature(last))
-    return { kind: 'escalate', reason: 'two attempts in a row failed the same way', question: 'The same checks failed twice in a row. Is the task or the test wrong?' }
+    return {
+      kind: 'escalate',
+      reason: 'two attempts in a row failed the same way',
+      question: 'The same checks failed twice in a row. Is the task or the test wrong?',
+    }
   if (attempts.length >= max)
     return { kind: 'escalate', reason: `${max} attempts used`, question: `No stable green after ${max} attempts. What should change?` }
   return { kind: 'attempt' }

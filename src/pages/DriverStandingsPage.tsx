@@ -11,7 +11,15 @@ export function DriverStandingsPage() {
       <h1 className="text-2xl font-bold">Driver standings</h1>
       <Table>
         <caption className="sr-only">2025 driver standings</caption>
-        <thead><tr><Th>Pos</Th><Th>Driver</Th><Th>Team</Th><Th>Wins</Th><Th>Pts</Th></tr></thead>
+        <thead>
+          <tr>
+            <Th>Pos</Th>
+            <Th>Driver</Th>
+            <Th>Team</Th>
+            <Th>Wins</Th>
+            <Th>Pts</Th>
+          </tr>
+        </thead>
         <tbody>
           {rows.map((r) => {
             const d = driverById(r.id)

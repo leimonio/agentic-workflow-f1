@@ -3,7 +3,9 @@ import { COLUMNS, fromColumnValues, toColumnValues } from './board-columns.ts'
 
 describe('board column mapping', () => {
   it('writes each column type in the shape monday expects', () => {
-    expect(toColumnValues({ build: 'Queued', attempts: 2, planDetails: 'x', planApproved: true, pr: 'https://g/1', dependsOn: ['1', '2'], branch: 'b' })).toEqual({
+    expect(
+      toColumnValues({ build: 'Queued', attempts: 2, planDetails: 'x', planApproved: true, pr: 'https://g/1', dependsOn: ['1', '2'], branch: 'b' }),
+    ).toEqual({
       agent_build: { label: 'Queued' },
       agent_attempts: '2',
       agent_plan_details: { text: 'x' },

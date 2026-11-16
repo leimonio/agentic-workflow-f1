@@ -23,6 +23,7 @@ export async function gql<T>(query: string, variables: Record<string, unknown> =
     signal: AbortSignal.timeout(30_000),
   })
   const body = (await res.json()) as { data?: T; errors?: { message: string }[]; error_message?: string }
-  if (!res.ok || body.errors || body.error_message) throw new Error(`monday API: ${body.errors?.map((e) => e.message).join('; ') ?? body.error_message ?? res.status}`)
+  if (!res.ok || body.errors || body.error_message)
+    throw new Error(`monday API: ${body.errors?.map((e) => e.message).join('; ') ?? body.error_message ?? res.status}`)
   return body.data as T
 }

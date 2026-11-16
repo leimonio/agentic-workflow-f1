@@ -14,16 +14,24 @@ export function fetchPr(ref: string): PrStatus {
   const v = JSON.parse(gh('pr', 'view', ref, '--json', 'number,url,state,headRefName,baseRefName,mergeable,statusCheckRollup'))
   const [owner = '', name = ''] = new URL(v.url).pathname.slice(1).split('/')
   const nodes = graphql(THREADS, { owner, name, n: v.number }).repository.pullRequest.reviewThreads.nodes
-  const threads: Thread[] = nodes.map((t: { id: string; isResolved: boolean; path: string; line: number | null; comments: { nodes: { author: { login: string } | null; body: string; url: string }[] } }) => ({
-    id: t.id,
-    resolved: t.isResolved,
-    path: t.path,
-    line: t.line,
-    author: t.comments.nodes[0]?.author?.login ?? 'ghost',
-    body: t.comments.nodes.map((c) => `${c.author?.login ?? 'ghost'}: ${c.body}`).join('\n---\n'),
-    url: t.comments.nodes[0]?.url ?? v.url,
-    replies: t.comments.nodes.length - 1,
-  }))
+  const threads: Thread[] = nodes.map(
+    (t: {
+      id: string
+      isResolved: boolean
+      path: string
+      line: number | null
+      comments: { nodes: { author: { login: string } | null; body: string; url: string }[] }
+    }) => ({
+      id: t.id,
+      resolved: t.isResolved,
+      path: t.path,
+      line: t.line,
+      author: t.comments.nodes[0]?.author?.login ?? 'ghost',
+      body: t.comments.nodes.map((c) => `${c.author?.login ?? 'ghost'}: ${c.body}`).join('\n---\n'),
+      url: t.comments.nodes[0]?.url ?? v.url,
+      replies: t.comments.nodes.length - 1,
+    }),
+  )
   return {
     number: v.number,
     url: v.url,
@@ -38,6 +46,9 @@ export function fetchPr(ref: string): PrStatus {
 }
 
 export const replyToThread = (threadId: string, body: string) =>
-  graphql('mutation($id:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$id,body:$body}){comment{url}}}', { id: threadId, body })
+  graphql('mutation($id:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$id,body:$body}){comment{url}}}', {
+    id: threadId,
+    body,
+  })
 
 export const resolveThread = (threadId: string) => graphql('mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}', { id: threadId })
