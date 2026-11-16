@@ -1,6 +1,6 @@
 // One pass over the tracker: nextStage() decides, this script runs the stage. No model here.
 //   npm run dispatch [-- --watch] [-- --pr]
-// --pr pushes the build branch and opens a PR. Without it the branch stays local.
+// --pr pushes the build branch (and its base) and opens a PR. Without it the branch stays local.
 import { execFileSync, spawnSync } from 'node:child_process'
 import { nextStage } from './lib/stage.ts'
 import { logLine, type Item } from './lib/tracker.ts'
