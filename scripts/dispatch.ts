@@ -44,6 +44,8 @@ async function build(item: Item, all: Item[]) {
     git('commit', '-m', `${item.title}\n\nBuilt by the build loop for ${item.id}. Gate output is in the tracker log.`)
     await tracker.update(item.id, { branch })
     if (!args.includes('--pr')) return console.log(`[dispatch ${item.id}] committed on ${branch}. PR skipped (pass --pr).`)
+    // The PR's base must exist on GitHub: push it too (a no-op when it is already there).
+    git('push', 'origin', from)
     git('push', '-u', 'origin', branch)
     const pr = execFileSync(
       'gh',
