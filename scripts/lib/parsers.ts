@@ -16,6 +16,14 @@ export function parseEslint(json: string, root: string): Result[] {
   )
 }
 
+/** `prettier --list-different .`: one unformatted file per line; formatted files are not results. */
+export function parsePrettier(output: string): Result[] {
+  return output
+    .split('\n')
+    .filter(Boolean)
+    .map((file) => ({ check: 'format' as const, id: `format:${file}`, status: 'fail' as const, message: 'not formatted: run npm run format' }))
+}
+
 /** `tsc --pretty false`: lines like `src/a.ts(3,5): error TS2322: message`. */
 export function parseTsc(output: string): Result[] {
   const seen = new Map<string, number>()
@@ -46,8 +54,18 @@ export function parseVitest(json: string, check: Check, root: string): Result[] 
   )
 }
 
-interface PwSuite { file?: string; title: string; specs?: PwSpec[]; suites?: PwSuite[] }
-interface PwSpec { title: string; file: string; ok: boolean; tests: { results: { error?: { message?: string } }[] }[] }
+interface PwSuite {
+  file?: string
+  title: string
+  specs?: PwSpec[]
+  suites?: PwSuite[]
+}
+interface PwSpec {
+  title: string
+  file: string
+  ok: boolean
+  tests: { results: { error?: { message?: string } }[] }[]
+}
 
 /** Playwright `--reporter=json`. */
 export function parsePlaywright(json: string): Result[] {

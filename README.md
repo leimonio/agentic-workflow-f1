@@ -2,6 +2,8 @@
 
 Starter repo for "Creating Autonomous, Verifiable Agentic Workflows with Human in the Loop".
 
+Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You need nvm (or Node 24+), git, the GitHub CLI and Claude Code; `npm run doctor` prints the install command for anything missing.
+
 ```bash
 nvm use            # Node 26 (>= 24 works)
 npm ci

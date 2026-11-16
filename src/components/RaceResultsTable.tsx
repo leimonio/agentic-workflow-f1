@@ -8,7 +8,14 @@ export function RaceResultsTable({ results }: { results: ResultRow[] }) {
     <Table>
       <caption className="sr-only">Race results</caption>
       <thead>
-        <tr><Th>Pos</Th><Th>Driver</Th><Th>Team</Th><Th>Grid</Th><Th>Time / status</Th><Th>Pts</Th></tr>
+        <tr>
+          <Th>Pos</Th>
+          <Th>Driver</Th>
+          <Th>Team</Th>
+          <Th>Grid</Th>
+          <Th>Time / status</Th>
+          <Th>Pts</Th>
+        </tr>
       </thead>
       <tbody>
         {results.map((r) => {
@@ -17,7 +24,9 @@ export function RaceResultsTable({ results }: { results: ResultRow[] }) {
             <tr key={r.driverId}>
               <Td>{r.position}</Td>
               <Td>{d ? `${d.givenName} ${d.familyName}` : r.driverId}</Td>
-              <Td><TeamSwatch constructorId={r.constructorId} /></Td>
+              <Td>
+                <TeamSwatch constructorId={r.constructorId} />
+              </Td>
               <Td>{r.grid}</Td>
               <Td>{r.time ?? r.status}</Td>
               <Td>{r.points}</Td>

@@ -7,7 +7,11 @@ export default meta
 export const Default: StoryObj<typeof meta> = {
   render: () => (
     <MemoryRouter initialEntries={['/calendar']}>
-      <Routes><Route element={<Layout />}><Route path="/calendar" element={<p>Page content</p>} /></Route></Routes>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/calendar" element={<p>Page content</p>} />
+        </Route>
+      </Routes>
     </MemoryRouter>
   ),
 }

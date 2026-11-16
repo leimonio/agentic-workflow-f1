@@ -1,0 +1,5 @@
+package-lock.json
+src/data/season-2025.json
+*.md
+workshop/seed/
+.agent/
