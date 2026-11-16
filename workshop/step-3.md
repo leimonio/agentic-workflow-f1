@@ -8,6 +8,7 @@
 2. `npm run board:setup` (idempotent: second run changes nothing). Needs `MONDAY_API_TOKEN` in `.env`.
 3. `board:read` and `board:write` are thin CLIs over `Tracker`.
 4. `npm run dispatch` does one pass: the pure `nextStage(item)` decides each item's stage, dispatch runs it. `-- --watch` repeats every 60 s (demo only).
+   Build branches (`agent/<id>`) start from the branch you run dispatch from (or an unmerged dependency's branch), not from `main`: your earlier steps are not on `main`. Pass that branch to the build loop as `AGENT_BASE_BRANCH` so the baseline matches it. If the loop exits without a handoff, it crashed: say so, don't send the human to an old handoff.
 5. `plan` skill: idea "Driver profile page" becomes 2–3 tasks. Each task has one responsibility statement, files to touch (max 15 per task), acceptance criteria and a test. A script validates this schema (2 retries). A plan-review agent judges single responsibility.
 6. **Human gate:** you set `Plan approved`. The agent never does.
 7. `build-feature` now picks up Ready tasks and writes Build columns through `Tracker`.
@@ -36,7 +37,7 @@
 | `scripts/lib/stage.ts` | `nextStage(item, all)`: the stage rules as one pure, tested function. |
 | `scripts/lib/plan.ts` | The plan JSON schema and `validatePlan` (files, criteria, test, max 15 files, unknown deps, cycles). |
 | `scripts/plan/loop.ts` | plan agent → schema check → plan-review agent, 2 retries, then `Awaiting approval` or a handoff. |
-| `scripts/dispatch.ts` | One pass: `queue` is deterministic, `build` branches (stacked on an unmerged dependency), runs `build:loop`, commits. `--pr` pushes and opens the PR. |
+| `scripts/dispatch.ts` | One pass: `queue` is deterministic, `build` branches from the current branch (or stacks on an unmerged dependency), runs `build:loop` with that base for the baseline, commits. A loop that exits without a handoff is reported as a crash, not an escalation. `--pr` pushes and opens the PR. |
 | `.claude/skills/plan`, `plan-review` | The two read-only skills. |
 | `scripts/item.ts` | `idea` and `approve` (the local human plan gate). |
 | `src/lib/drivers.ts` | Task 1 of the driver profile plan, built by dispatch. |
@@ -44,7 +45,7 @@
 ### Try it (local tracker)
 
 ```bash
-export AGENT_TRACKER=local AGENT_BASE_BRANCH=step-3-solution
+export AGENT_TRACKER=local   # build branches start from the branch you are on (AGENT_BASE_BRANCH overrides)
 npm run item -- idea driver-profile "Driver profile page" "A page per driver at /drivers/:id with name, team, points, wins and race results. Link driver names in the standings to it."
 npm run dispatch            # plans: 2-3 tasks, Plan = Awaiting approval
 npm run item -- approve driver-profile

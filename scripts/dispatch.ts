@@ -7,10 +7,9 @@ import { logLine, type Item } from './lib/tracker.ts'
 import { trackerFromEnv } from './lib/tracker-from-env.ts'
 
 const args = process.argv.slice(2)
-const BASE = process.env.AGENT_BASE_BRANCH ?? 'main'
 const tracker = trackerFromEnv()
 const git = (...a: string[]) => execFileSync('git', a, { encoding: 'utf8' }).trim()
-const run = (script: string, id: string) => spawnSync('npm', ['run', '-s', script, '--', id], { stdio: 'inherit' }).status === 0
+const run = (script: string, id: string, env = process.env) => spawnSync('npm', ['run', '-s', script, '--', id], { stdio: 'inherit', env }).status
 
 async function queue(idea: Item, all: Item[]) {
   const tasks = all.filter((t) => t.parent === idea.id && t.type === 'Task')
@@ -22,15 +21,23 @@ async function queue(idea: Item, all: Item[]) {
 
 async function build(item: Item, all: Item[]) {
   if (git('status', '--porcelain')) return console.log(`[dispatch ${item.id}] skipped build: the working tree is not clean`)
-  // Stack on an unmerged dependency's branch, else start from the base branch.
-  const dep = all.find((d) => item.dependsOn?.includes(d.id) && d.branch && d.merge !== 'Merged')
-  const from = dep?.branch ?? BASE
-  const branch = `agent/${item.id}`
   const back = git('branch', '--show-current')
+  // Stack on an unmerged dependency's branch, else start from the branch dispatch runs on (your earlier work is not on main).
+  const dep = all.find((d) => item.dependsOn?.includes(d.id) && d.branch && d.merge !== 'Merged')
+  const from = dep?.branch ?? process.env.AGENT_BASE_BRANCH ?? back
+  const branch = `agent/${item.id}`
   git('switch', '-C', branch, from)
-  if (!run('build:loop', item.id)) {
+  // The baseline must come from the same base, or its failures get blamed on the agent.
+  const code = run('build:loop', item.id, { ...process.env, AGENT_BASE_BRANCH: from })
+  if (code !== 0) {
     process.exitCode = 1
-    return console.log(`[dispatch ${item.id}] build escalated. Left on ${branch} with its changes for the human; switch back with \`git switch ${back}\`.`)
+    const leave = `Left on ${branch} with its changes; switch back with \`git switch ${back}\`.`
+    // A loop that escalates writes needsHuman. Without it the loop crashed, and .agent/handoff.md is stale.
+    if ((await tracker.get(item.id)).needsHuman) return console.log(`[dispatch ${item.id}] build escalated, see .agent/handoff.md. ${leave}`)
+    const reason = `build loop exited ${code} without a handoff (crashed before escalating): read the output above`
+    await tracker.update(item.id, { build: 'Failed', needsHuman: reason })
+    await tracker.log(item.id, logLine('Build', reason))
+    return console.log(`[dispatch ${item.id}] ${reason}. ${leave}`)
   }
   try {
     git('add', '-A')
