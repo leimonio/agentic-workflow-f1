@@ -11,7 +11,9 @@ const created: string[] = []
 
 let boardId = option('adopt') ?? (existsSync(BOARD_FILE) ? (JSON.parse(readFileSync(BOARD_FILE, 'utf8')) as BoardConfig).boardId : undefined)
 if (!boardId) {
-  const d = await gql<{ create_board: { id: string } }>(`mutation { create_board(board_name: "F1 workshop: agent board", board_kind: private, empty: true) { id } }`)
+  const d = await gql<{ create_board: { id: string } }>(
+    `mutation { create_board(board_name: "F1 workshop: agent board", board_kind: private, empty: true) { id } }`,
+  )
   boardId = d.create_board.id
   created.push(`board ${boardId}`)
 }
@@ -27,7 +29,10 @@ const groups = {} as BoardConfig['groups']
 for (const title of GROUPS) {
   let g = board.groups.find((x) => x.title === title)
   if (!g) {
-    const d = await gql<{ create_group: { id: string } }>(`mutation ($b: ID!, $n: String!) { create_group(board_id: $b, group_name: $n) { id } }`, { b: boardId, n: title })
+    const d = await gql<{ create_group: { id: string } }>(`mutation ($b: ID!, $n: String!) { create_group(board_id: $b, group_name: $n) { id } }`, {
+      b: boardId,
+      n: title,
+    })
     g = { id: d.create_group.id, title }
     created.push(`group ${title}`)
   }
@@ -39,13 +44,16 @@ for (const c of [...COLUMNS, LOG_COLUMN]) {
   const labels = 'labels' in c && c.labels ? c.labels : undefined
   // Writes also pass create_labels_if_missing, so a label that did not get created here still works.
   const defaults = labels ? { settings: { labels: labels.map((label, index) => ({ label, index, color: COLORS[index % COLORS.length] })) } } : undefined
-  await gql(`mutation ($b: ID!, $t: String!, $ty: ColumnType!, $id: String, $d: JSON) { create_column(board_id: $b, title: $t, column_type: $ty, id: $id, defaults: $d) { id } }`, {
-    b: boardId,
-    t: c.title,
-    ty: c.type,
-    id: c.id,
-    d: defaults ? JSON.stringify(defaults) : undefined,
-  })
+  await gql(
+    `mutation ($b: ID!, $t: String!, $ty: ColumnType!, $id: String, $d: JSON) { create_column(board_id: $b, title: $t, column_type: $ty, id: $id, defaults: $d) { id } }`,
+    {
+      b: boardId,
+      t: c.title,
+      ty: c.type,
+      id: c.id,
+      d: defaults ? JSON.stringify(defaults) : undefined,
+    },
+  )
   created.push(`column ${c.title}`)
 }
 

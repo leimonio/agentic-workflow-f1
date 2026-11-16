@@ -1,9 +1,9 @@
-// Deterministic: runs the five checks and writes .agent/verify.json. No model involved.
+// Deterministic: runs the six checks and writes .agent/verify.json. No model involved.
 import { spawnSync } from 'node:child_process'
 import { mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { flag, option } from './lib/args.ts'
-import { parseEslint, parsePlaywright, parseTsc, parseVitest } from './lib/parsers.ts'
+import { parseEslint, parsePlaywright, parsePrettier, parseTsc, parseVitest } from './lib/parsers.ts'
 import type { Check, Result } from './lib/types.ts'
 
 // realpath: macOS tmp dirs live behind a symlink, and tools report the resolved path.
@@ -29,6 +29,13 @@ const vitest = (project: 'unit' | 'stories') => () => {
 mkdirSync(path.join(root, '.agent'), { recursive: true })
 const checks: Record<Check, () => Result[]> = {
   lint: () => guard('lint', () => parseEslint(run('npx', ['eslint', '.', '-f', 'json']).stdout, root)),
+  format: () =>
+    guard('format', () => {
+      const r = run('npx', ['prettier', '--list-different', '.'])
+      // exit 1 = some files differ (reported below); 2 = prettier itself failed, e.g. a syntax error
+      if (r.status === 2) throw new Error(r.stderr.split('\n')[0])
+      return parsePrettier(r.stdout)
+    }),
   types: () => guard('types', () => parseTsc(run('npx', ['tsc', '--noEmit', '--pretty', 'false']).stdout)),
   unit: vitest('unit'),
   stories: vitest('stories'),

@@ -39,7 +39,19 @@ if (step >= 4) {
   }
   pr = sh('gh', ['pr', 'list', '--head', SEED_BRANCH, '--state', 'open', '--json', 'url', '--jq', '.[0].url'])
   if (pr) sh('gh', ['pr', 'edit', pr, '--base', base])
-  else pr = sh('gh', ['pr', 'create', '--head', SEED_BRANCH, '--base', base, '--title', fx.t2.title, '--body', `Seeded for step ${step}.\n\n${fx.t2.planDetails ?? fx.t2.description}`])
+  else
+    pr = sh('gh', [
+      'pr',
+      'create',
+      '--head',
+      SEED_BRANCH,
+      '--base',
+      base,
+      '--title',
+      fx.t2.title,
+      '--body',
+      `Seeded for step ${step}.\n\n${fx.t2.planDetails ?? fx.t2.description}`,
+    ])
   console.log(`seed: ${SEED_BRANCH} → ${base}, ${pr}`)
 }
 

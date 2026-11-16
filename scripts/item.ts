@@ -28,8 +28,7 @@ else if (cmd === 'idea' && id && a && b) await put({ title: a, type: 'Idea', des
 else if (cmd === 'approve' && id) {
   await t.update(id, { planApproved: true })
   await t.log(id, logLine('Plan', 'approved by human'))
-}
-else if (cmd === 'reset' && id && a && resets[a]) {
+} else if (cmd === 'reset' && id && a && resets[a]) {
   await t.update(id, resets[a])
   await t.log(id, logLine(a, 'reset by human'))
 } else if (!(cmd === 'show' && id)) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseEslint, parsePlaywright, parseTsc, parseVitest } from './parsers.ts'
+import { parseEslint, parsePlaywright, parsePrettier, parseTsc, parseVitest } from './parsers.ts'
 
 describe('parsers', () => {
   it('eslint: one failure per message, ids stable without line numbers', () => {
@@ -7,9 +7,12 @@ describe('parsers', () => {
       { filePath: '/repo/src/a.ts', messages: [{ ruleId: 'no-unused-vars', message: 'x unused', line: 3 }] },
       { filePath: '/repo/src/b.ts', messages: [] },
     ])
-    expect(parseEslint(json, '/repo')).toEqual([
-      { check: 'lint', id: 'lint:no-unused-vars:src/a.ts', status: 'fail', message: 'x unused' },
-    ])
+    expect(parseEslint(json, '/repo')).toEqual([{ check: 'lint', id: 'lint:no-unused-vars:src/a.ts', status: 'fail', message: 'x unused' }])
+  })
+
+  it('prettier: one failure per unformatted file, nothing when clean', () => {
+    expect(parsePrettier('src/a.ts\nsrc/b.tsx\n').map((r) => r.id)).toEqual(['format:src/a.ts', 'format:src/b.tsx'])
+    expect(parsePrettier('')).toEqual([])
   })
 
   it('tsc: parses errors and disambiguates repeated ones in one file', () => {
@@ -19,10 +22,15 @@ describe('parsers', () => {
 
   it('vitest: passes and failures, with root-relative file ids', () => {
     const json = JSON.stringify({
-      testResults: [{ name: '/repo/src/x.test.ts', assertionResults: [
-        { fullName: 'x works', status: 'passed' },
-        { fullName: 'x breaks', status: 'failed', failureMessages: ['AssertionError: nope\n at ...'] },
-      ] }],
+      testResults: [
+        {
+          name: '/repo/src/x.test.ts',
+          assertionResults: [
+            { fullName: 'x works', status: 'passed' },
+            { fullName: 'x breaks', status: 'failed', failureMessages: ['AssertionError: nope\n at ...'] },
+          ],
+        },
+      ],
     })
     expect(parseVitest(json, 'unit', '/repo')).toEqual([
       { check: 'unit', id: 'unit:src/x.test.ts::x works', status: 'pass', message: '' },
@@ -31,10 +39,22 @@ describe('parsers', () => {
   })
 
   it('playwright: walks nested suites', () => {
-    const json = JSON.stringify({ suites: [{ title: 'f', suites: [{ title: 'inner', specs: [
-      { title: 'ok test', file: 'site.spec.ts', ok: true, tests: [] },
-      { title: 'bad test', file: 'site.spec.ts', ok: false, tests: [{ results: [{ error: { message: 'timeout\nmore' } }] }] },
-    ] }] }] })
+    const json = JSON.stringify({
+      suites: [
+        {
+          title: 'f',
+          suites: [
+            {
+              title: 'inner',
+              specs: [
+                { title: 'ok test', file: 'site.spec.ts', ok: true, tests: [] },
+                { title: 'bad test', file: 'site.spec.ts', ok: false, tests: [{ results: [{ error: { message: 'timeout\nmore' } }] }] },
+              ],
+            },
+          ],
+        },
+      ],
+    })
     expect(parsePlaywright(json).map((r) => [r.id, r.status, r.message])).toEqual([
       ['e2e:site.spec.ts::ok test', 'pass', ''],
       ['e2e:site.spec.ts::bad test', 'fail', 'timeout'],

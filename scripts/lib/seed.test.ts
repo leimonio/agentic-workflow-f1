@@ -6,7 +6,8 @@ import type { Item } from './tracker.ts'
 const t = (title: string) => ({ title, type: 'Task' as const, description: title })
 const fx: Fixture = { idea: { ...t('Idea'), type: 'Idea' }, t1: t('t1'), t2: t('t2'), t3: t('t3') }
 // What the tracker holds after seeding, with the keys as ids.
-const asItems = (step: number): Item[] => seedItems(step, fx, 'https://x/pull/9').map((s) => ({ ...s.fields, id: s.key, parent: s.parent, dependsOn: s.dependsOn }))
+const asItems = (step: number): Item[] =>
+  seedItems(step, fx, 'https://x/pull/9').map((s) => ({ ...s.fields, id: s.key, parent: s.parent, dependsOn: s.dependsOn }))
 const next = (step: number) => {
   const all = asItems(step)
   return Object.fromEntries(all.map((i) => [i.id, nextStage(i, all)]))

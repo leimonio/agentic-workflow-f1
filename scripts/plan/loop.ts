@@ -26,7 +26,10 @@ let accepted: PlanVerdict | undefined
 for (let n = 1; n <= 1 + PLAN_RETRIES && !accepted && !question; n++) {
   say(`attempt ${n}/${1 + PLAN_RETRIES}: plan`)
   const plan = runAgent<PlanVerdict>(
-    [`/plan ${idea.title}: ${idea.description}`, feedback.length ? `\nYour previous plan was rejected. Fix exactly these:\n${feedback.map((f) => `- ${f}`).join('\n')}` : ''].join('\n'),
+    [
+      `/plan ${idea.title}: ${idea.description}`,
+      feedback.length ? `\nYour previous plan was rejected. Fix exactly these:\n${feedback.map((f) => `- ${f}`).join('\n')}` : '',
+    ].join('\n'),
     { schema: PLAN_SCHEMA, tools: READ_ONLY, budgetUsd: 1.5 },
   ).verdict
   if (plan.status === 'needs_human') {
@@ -72,7 +75,8 @@ if (!accepted) {
 
 const tasks = accepted.tasks!
 const ids = new Map<string, string>()
-for (const t of tasks) ids.set(t.key, await tracker.create({ title: t.title, type: 'Task', description: t.responsibility, parent: id, planDetails: renderTask(t) }))
+for (const t of tasks)
+  ids.set(t.key, await tracker.create({ title: t.title, type: 'Task', description: t.responsibility, parent: id, planDetails: renderTask(t) }))
 for (const t of tasks) if (t.dependsOn.length) await tracker.update(ids.get(t.key)!, { dependsOn: t.dependsOn.map((k) => ids.get(k)!) })
 await tracker.update(id, { plan: 'Awaiting approval', planDetails: `${accepted.summary}\n\n${tasks.map((t) => `- ${ids.get(t.key)}: ${t.title}`).join('\n')}` })
 await tracker.log(id, logLine('Plan', `Awaiting approval (${tasks.length} tasks)`))

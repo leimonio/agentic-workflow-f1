@@ -3,7 +3,12 @@ import type { Item } from './tracker.ts'
 
 export type SeedKey = 'idea' | 't1' | 't2' | 't3'
 export type Fixture = Record<SeedKey, Pick<Item, 'title' | 'type' | 'description' | 'planDetails'>>
-export interface SeedItem { key: SeedKey; parent?: SeedKey; dependsOn?: SeedKey[]; fields: Omit<Item, 'id' | 'parent' | 'dependsOn'> }
+export interface SeedItem {
+  key: SeedKey
+  parent?: SeedKey
+  dependsOn?: SeedKey[]
+  fields: Omit<Item, 'id' | 'parent' | 'dependsOn'>
+}
 
 export const SEED_BRANCH = 'seed/task-pr'
 
@@ -14,7 +19,7 @@ export function seedItems(step: number, fx: Fixture, pr = ''): SeedItem[] {
   const t2 =
     step === 3
       ? queued
-      : { build: 'Done', attempts: 1, branch: SEED_BRANCH, pr, ci: 'Pending', verify: step === 5 ? 'Stable green' : 'Watching', merge: 'Waiting' } as const
+      : ({ build: 'Done', attempts: 1, branch: SEED_BRANCH, pr, ci: 'Pending', verify: step === 5 ? 'Stable green' : 'Watching', merge: 'Waiting' } as const)
   return [
     { key: 'idea', fields: { ...fx.idea, plan: 'Approved', planApproved: true } },
     { key: 't1', parent: 'idea', fields: { ...fx.t1, ...(step === 3 ? queued : { build: 'Done', attempts: 1, merge: 'Merged' }) } },
