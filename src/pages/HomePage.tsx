@@ -13,7 +13,9 @@ export function HomePage() {
       <h1 className="text-2xl font-bold">Formula 1 2025</h1>
       <Card aria-label="Last race">
         <CardTitle>Last race: {race.name}</CardTitle>
-        <p className="text-sm text-muted-foreground">{formatRaceDate(race.date)} · {race.circuit}</p>
+        <p className="text-sm text-muted-foreground">
+          {formatRaceDate(race.date)} · {race.circuit}
+        </p>
         <ol className="my-4 space-y-1">
           {race.results.slice(0, 3).map((r) => {
             const d = driverById(r.driverId)
@@ -26,7 +28,9 @@ export function HomePage() {
             )
           })}
         </ol>
-        <Button asChild size="sm"><Link to={`/races/${race.round}`}>Full results</Link></Button>
+        <Button asChild size="sm">
+          <Link to={`/races/${race.round}`}>Full results</Link>
+        </Button>
       </Card>
     </div>
   )

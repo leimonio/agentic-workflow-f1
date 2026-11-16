@@ -1,4 +1,9 @@
-export interface Status { context: string; state: 'pending' | 'success' | 'failure' | 'error'; description: string; target_url: string }
+export interface Status {
+  context: string
+  state: 'pending' | 'success' | 'failure' | 'error'
+  description: string
+  target_url: string
+}
 export type Visual = 'not-run' | 'pending-review' | 'accepted' | 'rejected-or-error'
 
 // Chromatic posts "UI Tests" and "UI Review" commit statuses. We read them; we never decide.
