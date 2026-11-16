@@ -4,16 +4,32 @@ import type { Race, ResultRow } from '@/data/types'
 import { constructorStandings, driverStandings } from './standings'
 
 const row = (driverId: string, constructorId: string, position: number, points: number): ResultRow => ({
-  position, driverId, constructorId, grid: position, laps: 50, status: 'Finished', points,
+  position,
+  driverId,
+  constructorId,
+  grid: position,
+  laps: 50,
+  status: 'Finished',
+  points,
 })
 const race = (round: number, results: ResultRow[], sprint?: ResultRow[]): Race => ({
-  round, name: `R${round}`, date: '2025-01-01', circuit: 'c', locality: 'l', country: 'x', results, ...(sprint ? { sprint } : {}),
+  round,
+  name: `R${round}`,
+  date: '2025-01-01',
+  circuit: 'c',
+  locality: 'l',
+  country: 'x',
+  results,
+  ...(sprint ? { sprint } : {}),
 })
 
 describe('standings', () => {
   it('sums race and sprint points', () => {
     const s = driverStandings([race(1, [row('a', 'x', 1, 25)], [row('b', 'y', 1, 8)]), race(2, [row('b', 'y', 1, 25)])])
-    expect(s.map((r) => [r.id, r.points])).toEqual([['b', 33], ['a', 25]])
+    expect(s.map((r) => [r.id, r.points])).toEqual([
+      ['b', 33],
+      ['a', 25],
+    ])
   })
 
   it('breaks ties on wins, and sprint wins do not count as wins', () => {
@@ -32,7 +48,11 @@ describe('standings', () => {
 
   it('matches the real 2025 final standings from the snapshot', () => {
     const d = driverStandings(season.races)
-    expect(d.slice(0, 3).map((r) => [r.id, r.points])).toEqual([['norris', 423], ['max_verstappen', 421], ['piastri', 410]])
+    expect(d.slice(0, 3).map((r) => [r.id, r.points])).toEqual([
+      ['norris', 423],
+      ['max_verstappen', 421],
+      ['piastri', 410],
+    ])
     expect(constructorStandings(season.races)[0]).toMatchObject({ id: 'mclaren', points: 833 })
   })
 })

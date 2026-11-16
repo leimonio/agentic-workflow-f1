@@ -16,7 +16,10 @@ const env = (key: string) => (existsSync('.env') ? new RegExp(`^${key}=(.+)$`, '
 const pinned = Number(readFileSync('.nvmrc', 'utf8').trim())
 const minMajor = Number(/>=(\d+)/.exec(JSON.parse(readFileSync('package.json', 'utf8')).engines.node)?.[1])
 // Launching is the only reliable test that the browser Playwright will use is installed.
-const browserOk = await chromium.launch().then((b) => b.close().then(() => true), () => false)
+const browserOk = await chromium.launch().then(
+  (b) => b.close().then(() => true),
+  () => false,
+)
 const os = process.platform
 const findings: Finding[] = [platformFinding(os), nodeFinding(process.version, minMajor, pinned)]
 
@@ -49,7 +52,8 @@ const checkRepo = (slug: string, branch: string) => {
     requiredChecks: prot ? (prot.required_status_checks?.contexts ?? []) : null,
   })
 }
-if (!repo) findings.push({ id: 'repo', status: 'warn', message: 'No GitHub repo for this checkout yet: repo settings not checked. Use the template, then re-run.' })
+if (!repo)
+  findings.push({ id: 'repo', status: 'warn', message: 'No GitHub repo for this checkout yet: repo settings not checked. Use the template, then re-run.' })
 else {
   findings.push(...checkRepo(repo.nameWithOwner, repo.defaultBranchRef.name))
   const token = env('CHROMATIC_PROJECT_TOKEN')
@@ -58,7 +62,12 @@ else {
     hasSecret
       ? { id: 'chromatic-secret', status: 'ok', message: 'CHROMATIC_PROJECT_TOKEN is a repo secret' }
       : token
-        ? { id: 'chromatic-secret', status: 'fail', message: 'CHROMATIC_PROJECT_TOKEN is in .env but not a repo secret', fix: `gh secret set CHROMATIC_PROJECT_TOKEN --body '${token}'` }
+        ? {
+            id: 'chromatic-secret',
+            status: 'fail',
+            message: 'CHROMATIC_PROJECT_TOKEN is in .env but not a repo secret',
+            fix: `gh secret set CHROMATIC_PROJECT_TOKEN --body '${token}'`,
+          }
         : { id: 'chromatic-secret', status: 'warn', message: 'No CHROMATIC_PROJECT_TOKEN (secret or .env): Chromatic will be skipped in CI' },
   )
 }
