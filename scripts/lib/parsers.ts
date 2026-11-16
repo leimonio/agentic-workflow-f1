@@ -21,7 +21,7 @@ export function parsePrettier(output: string): Result[] {
   return output
     .split('\n')
     .filter(Boolean)
-    .map((file) => ({ check: 'format' as const, id: `format:${file}`, status: 'fail' as const, message: `not formatted: run npx prettier --write ${file}` }))
+    .map((file) => ({ check: 'format' as const, id: `format:${file}`, status: 'fail' as const, message: 'not formatted: run npm run format' }))
 }
 
 /** `tsc --pretty false`: lines like `src/a.ts(3,5): error TS2322: message`. */
