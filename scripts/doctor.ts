@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'
 import { flag } from './lib/args.ts'
-import { nodeFinding, repoFindings, type Finding } from './lib/doctor.ts'
+import { nodeFinding, platformFinding, playwrightFinding, repoFindings, toolFinding, type Finding } from './lib/doctor.ts'
 
 const sh = (cmd: string) => spawnSync('sh', ['-c', cmd], { encoding: 'utf8' })
 const ok = (cmd: string) => sh(cmd).status === 0
@@ -17,20 +17,18 @@ const pinned = Number(readFileSync('.nvmrc', 'utf8').trim())
 const minMajor = Number(/>=(\d+)/.exec(JSON.parse(readFileSync('package.json', 'utf8')).engines.node)?.[1])
 // Launching is the only reliable test that the browser Playwright will use is installed.
 const browserOk = await chromium.launch().then((b) => b.close().then(() => true), () => false)
-const findings: Finding[] = [nodeFinding(process.version, minMajor, pinned)]
+const os = process.platform
+const findings: Finding[] = [platformFinding(os), nodeFinding(process.version, minMajor, pinned)]
 
-const tool = (id: string, cmd: string, fix: string): Finding =>
-  ok(cmd) ? { id, status: 'ok', message: `${id} found` } : { id, status: 'fail', message: `${id} not found or not ready`, fix }
+const ghInstalled = ok('gh --version')
 findings.push(
-  tool('git', 'git --version', 'Install git: https://git-scm.com'),
-  tool('gh', 'gh auth status', 'Run: gh auth login'),
-  tool('claude', 'claude --version', 'Install Claude Code: https://claude.com/claude-code'),
+  toolFinding('git', os, ok('git --version')),
+  toolFinding('gh', os, ghInstalled, ghInstalled && ok('gh auth status')),
+  toolFinding('claude', os, ok('claude --version')),
   existsSync('node_modules')
     ? { id: 'deps', status: 'ok', message: 'node_modules present' }
     : { id: 'deps', status: 'fail', message: 'dependencies not installed', fix: 'npm ci' },
-  browserOk
-    ? { id: 'playwright', status: 'ok', message: 'Playwright Chromium installed' }
-    : { id: 'playwright', status: 'fail', message: 'Playwright Chromium missing', fix: 'npx playwright install --with-deps chromium' },
+  playwrightFinding(os, browserOk),
   env('MONDAY_API_TOKEN')
     ? { id: 'monday-token', status: 'ok', message: 'MONDAY_API_TOKEN set' }
     : { id: 'monday-token', status: 'warn', message: 'MONDAY_API_TOKEN not set in .env (needed from step 3)' },
