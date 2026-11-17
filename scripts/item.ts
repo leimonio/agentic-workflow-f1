@@ -6,7 +6,7 @@
 //   npm run item -- review <id> approved|changes   (human gate)
 //   npm run item -- visual <id> accepted|rejected  (human gate, when Chromatic is not set up)
 //   npm run item -- show <id>
-import { trackerFromEnv } from './lib/tracker-from-env.ts'
+import { currentTrackerLabel, trackerFromEnv, trackerKind } from './lib/tracker-from-env.ts'
 import { logLine, type Item } from './lib/tracker.ts'
 
 const [cmd, label, a, b] = process.argv.slice(2)
@@ -21,10 +21,16 @@ const resets: Record<string, Partial<Item>> = {
 
 // monday assigns numeric ids, so there <id> is only a label and the real id is printed.
 const put = async (fields: Omit<Item, 'id'>) => {
-  if (process.env.AGENT_TRACKER !== 'monday') return t.update(id ?? '', fields)
-  id = await t.create(fields)
-  console.log(`created monday item ${id}`)
+  if (trackerKind() === 'monday') id = await t.create(fields)
+  else await t.update(id ?? '', fields)
+  console.error(`created ${id} on ${currentTrackerLabel()}. Use this id from now on, e.g. npm run item -- show ${id}`)
 }
+// A wrong id (often a local one typed against monday) must fail here, not write a stray item.
+if (id && ['approve', 'review', 'visual', 'reset', 'show'].includes(cmd ?? ''))
+  await t.get(id).catch((e: Error) => {
+    console.error(`not found: ${e.message}. Tracker: ${currentTrackerLabel()} (AGENT_TRACKER in .env). List ids: npm run -s board:read`)
+    process.exit(1)
+  })
 if (cmd === 'add' && id && a && b) await put({ title: a, type: 'Task', description: b, build: 'Queued', attempts: 0 })
 else if (cmd === 'idea' && id && a && b) await put({ title: a, type: 'Idea', description: b, plan: 'Not started' })
 // The human ticking "Plan approved". On monday you tick the checkbox instead.
