@@ -11,25 +11,26 @@ export interface Column {
   labels?: string[]
 }
 
+// Left to right is what a human scans first: type, then who must act, then the stage columns in order, long text last.
 export const COLUMNS: Column[] = [
   { field: 'type', id: 'agent_type', title: 'Type', type: 'status', labels: ['Idea', 'Task'] },
-  { field: 'parent', id: 'agent_parent', title: 'Parent', type: 'text' },
-  { field: 'dependsOn', id: 'agent_depends_on', title: 'Depends on', type: 'text' },
-  { field: 'description', id: 'agent_description', title: 'Description', type: 'long_text' },
+  { field: 'needsHuman', id: 'agent_needs_human', title: 'Needs human', type: 'long_text' },
   { field: 'plan', id: 'agent_plan', title: 'Plan', type: 'status', labels: ['Not started', 'Planning', 'Awaiting approval', 'Approved', 'Needs human'] },
-  { field: 'planDetails', id: 'agent_plan_details', title: 'Plan details', type: 'long_text' },
   { field: 'planApproved', id: 'agent_plan_approved', title: 'Plan approved', type: 'checkbox' },
   { field: 'build', id: 'agent_build', title: 'Build', type: 'status', labels: ['Queued', 'In progress', 'Done', 'Failed'] },
-  { field: 'attempts', id: 'agent_attempts', title: 'Attempts', type: 'numbers' },
-  { field: 'branch', id: 'agent_branch', title: 'Branch', type: 'text' },
   { field: 'ci', id: 'agent_ci', title: 'CI', type: 'status', labels: ['Pending', 'Green', 'Failing', 'Fixing'] },
-  { field: 'openThreads', id: 'agent_open_threads', title: 'Open threads', type: 'numbers' },
   { field: 'verify', id: 'agent_verify', title: 'Verify', type: 'status', labels: ['Watching', 'Fixing', 'Stable green', 'Needs human'] },
   { field: 'visual', id: 'agent_visual', title: 'Visual', type: 'status', labels: ['Pending review', 'Accepted', 'Rejected'] },
   { field: 'humanReview', id: 'agent_human_review', title: 'Human review', type: 'status', labels: ['Waiting', 'Changes requested', 'Approved'] },
   { field: 'merge', id: 'agent_merge', title: 'Merge', type: 'status', labels: ['Waiting', 'Merged', 'Blocked'] },
   { field: 'pr', id: 'agent_pr', title: 'PR', type: 'link' },
-  { field: 'needsHuman', id: 'agent_needs_human', title: 'Needs human', type: 'long_text' },
+  { field: 'attempts', id: 'agent_attempts', title: 'Attempts', type: 'numbers' },
+  { field: 'openThreads', id: 'agent_open_threads', title: 'Open threads', type: 'numbers' },
+  { field: 'branch', id: 'agent_branch', title: 'Branch', type: 'text' },
+  { field: 'parent', id: 'agent_parent', title: 'Parent', type: 'text' },
+  { field: 'dependsOn', id: 'agent_depends_on', title: 'Depends on', type: 'text' },
+  { field: 'description', id: 'agent_description', title: 'Description', type: 'long_text' },
+  { field: 'planDetails', id: 'agent_plan_details', title: 'Plan details', type: 'long_text' },
 ]
 export const LOG_COLUMN = { id: 'agent_log', title: 'Agent log', type: 'long_text' as const }
 export const GROUPS = ['Ideas', 'Tasks', 'Done'] as const
