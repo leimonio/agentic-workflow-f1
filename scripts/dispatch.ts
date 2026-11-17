@@ -4,7 +4,7 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import { nextStage } from './lib/stage.ts'
 import { logLine, type Item } from './lib/tracker.ts'
-import { trackerFromEnv } from './lib/tracker-from-env.ts'
+import { currentTrackerLabel, trackerFromEnv } from './lib/tracker-from-env.ts'
 
 const args = process.argv.slice(2)
 const tracker = trackerFromEnv()
@@ -16,7 +16,7 @@ async function queue(idea: Item, all: Item[]) {
   for (const t of tasks) await tracker.update(t.id, { build: 'Queued', attempts: 0 })
   await tracker.update(idea.id, { plan: 'Approved' })
   await tracker.log(idea.id, logLine('Plan', `Approved, ${tasks.length} tasks queued`))
-  console.log(`[dispatch ${idea.id}] approved: queued ${tasks.map((t) => t.id).join(', ')}`)
+  console.log(`[dispatch ${idea.id}] approved: queued ${tasks.map((t) => `${t.id} (${t.title})`).join(', ')}`)
 }
 
 async function build(item: Item, all: Item[]) {
@@ -78,6 +78,7 @@ async function pass() {
   }
 }
 
+console.log(`tracker: ${currentTrackerLabel()}`)
 await pass()
 // --until-idle: repeat passes while a pass changes the tracker (a stage moved), bounded. Stops at the
 // first pass that changes nothing, e.g. every item waits on a human or on CI.
