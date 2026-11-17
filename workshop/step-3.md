@@ -52,31 +52,7 @@
 
 | File | What |
 |---|---|
-| `scripts/lib/tracker.ts`, `local-tracker.ts` | `Tracker.create` (monday assigns ids, so tasks need it). Local ids are title slugs that never overwrite. |
-| `scripts/lib/board-columns.ts` | The board's columns with fixed ids (`agent_*`), and the mapping between `Item` fields and monday column values. |
-| `scripts/lib/monday.ts`, `monday-tracker.ts` | GraphQL client (reads `.env`) and the monday adapter. `handoff` also posts an update on the item. |
-| `scripts/board/setup.ts` | Creates the board, or completes it: only missing groups and columns. `--adopt <id>` uses an existing board. |
-| `scripts/board/read.ts`, `write.ts` | Thin CLIs over `Tracker`. `write` refuses `planApproved` and `humanReview`. |
-| `scripts/lib/stage.ts` | `nextStage(item, all)`: the stage rules as one pure, tested function. |
-| `scripts/lib/plan.ts` | The plan JSON schema and `validatePlan` (files, criteria, test, max 15 files, unknown deps, cycles). |
-| `scripts/plan/loop.ts` | plan agent → schema check → plan-review agent, 2 retries, then `Awaiting approval` or a handoff. |
-| `scripts/dispatch.ts` | One pass: `queue` is deterministic, `build` branches from the current branch (or stacks on an unmerged dependency), runs `build:loop` with that base for the baseline, commits. A loop that exits without a handoff is reported as a crash, not an escalation. `--pr` pushes and opens the PR. |
 | `.claude/skills/plan-tasks`, `plan-review` | The two read-only skills. |
-| `scripts/item.ts` | `idea` and `approve` (the local human plan gate). |
 | `src/lib/drivers.ts` | Task 1 of the driver profile plan, built by dispatch. |
 
-### Try it (local tracker)
-
-```bash
-export AGENT_TRACKER=local   # build branches start from the branch you are on (AGENT_BASE_BRANCH overrides)
-npm run item -- idea driver-profile "Driver profile page" "A page per driver at /drivers/:id with name, team, points, wins and race results. Link driver names in the standings to it."
-npm run dispatch            # plans: 2-3 tasks, Plan = Awaiting approval
-npm run item -- approve driver-profile
-npm run dispatch            # queues the tasks
-npm run dispatch            # builds the first task whose dependencies are done
-```
-
-On monday: put `MONDAY_API_TOKEN` in `.env`, `npm run board:setup` (twice: the second run prints "nothing changed"), set `AGENT_TRACKER=monday`, and tick **Plan approved** on the board instead of `item approve`.
-On monday, `item idea|add` print the id monday assigns (`created monday item 3353935995`); use that id afterwards, the `<id>` you typed is only a label.
-
-`dispatch` uses the item list from the start of its pass, so a task that unblocks mid-pass is built on the next pass.
+`dispatch` uses the item list from the start of its pass, so a task that unblocks mid-pass is built on the next pass: that is why step 4 runs it twice.
