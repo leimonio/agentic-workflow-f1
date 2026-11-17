@@ -1,5 +1,5 @@
 // One pass over the tracker: nextStage() decides, this script runs the stage. No model here.
-//   npm run dispatch [-- --watch] [-- --pr]
+//   npm run dispatch [-- --watch | --until-idle] [-- --pr]
 // --pr pushes the build branch (and its base) and opens a PR. Without it the branch stays local.
 import { execFileSync, spawnSync } from 'node:child_process'
 import { nextStage } from './lib/stage.ts'
@@ -74,10 +74,22 @@ async function pass() {
     else if (next.stage === 'queue') await queue(item, all)
     else if (next.stage === 'build') await build(item, await tracker.list())
     else if (next.stage === 'verify') run('babysit', item.id)
-    else console.log(`[dispatch ${item.id}] merge arrives in step 5`)
+    else run('merge', item.id)
   }
 }
 
 await pass()
+// --until-idle: repeat passes while a pass changes the tracker (a stage moved), bounded. Stops at the
+// first pass that changes nothing, e.g. every item waits on a human or on CI.
+if (args.includes('--until-idle')) {
+  const MAX_PASSES = 10
+  let before = JSON.stringify(await tracker.list())
+  for (let i = 1; i < MAX_PASSES; i++) {
+    await pass()
+    const after = JSON.stringify(await tracker.list())
+    if (after === before) break
+    before = after
+  }
+}
 // shortcut: a fixed 60 s poll, fine for one workshop board; use monday webhooks for more.
 if (args.includes('--watch')) setInterval(() => void pass(), 60_000)
