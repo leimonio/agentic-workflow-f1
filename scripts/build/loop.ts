@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 import { option } from '../lib/args.ts'
 import { runAgent } from '../lib/agent.ts'
 import { decide, MAX_ATTEMPTS, type Attempt } from '../lib/loop.ts'
+import { runBaseline, runGate as gate } from '../lib/run-gate.ts'
 import { logLine } from '../lib/tracker.ts'
 import { trackerFromEnv } from '../lib/tracker-from-env.ts'
 
@@ -19,15 +20,8 @@ const tracker = trackerFromEnv()
 const item = await tracker.get(id)
 const say = (s: string) => console.log(`[build ${id}] ${s}`)
 
-const gate = () => {
-  const r = spawnSync('npx', ['tsx', 'scripts/gate.ts', '--json'], { encoding: 'utf8' })
-  if (r.status === 2) throw new Error('gate: no baseline')
-  const out = JSON.parse(r.stdout) as { ok: boolean; newFailures: { id: string; message: string }[] }
-  return { pass: out.ok, newFailures: out.newFailures.map((f) => f.id), messages: out.newFailures.map((f) => `${f.id}: ${f.message}`) }
-}
-
 say('baseline')
-if (spawnSync('npx', ['tsx', 'scripts/baseline.ts'], { stdio: 'ignore' }).status === 2) throw new Error('baseline failed')
+runBaseline()
 await tracker.update(id, { build: 'In progress', attempts: 0, needsHuman: '' })
 await tracker.log(id, logLine('Build', 'In progress'))
 
