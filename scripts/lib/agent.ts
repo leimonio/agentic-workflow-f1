@@ -1,5 +1,6 @@
 // One agent call = one `claude -p` run that must return a JSON verdict. The caller (a script) applies it.
 import { spawnSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 
 export interface Verdict {
   status: 'ok' | 'failed' | 'needs_human'
@@ -59,4 +60,20 @@ export function runAgent<T extends Verdict = Verdict>(prompt: string, opts: { to
   }
   const verdict = !out.is_error && out.structured_output ? out.structured_output : failed(`agent error: ${String(out.result).slice(0, 200)}`)
   return { verdict, costUsd: out.total_cost_usd ?? 0, seconds: Math.round((out.duration_ms ?? 0) / 1000) }
+}
+
+/** Why the project's skill can't be used, or undefined when it is there. */
+export function missingSkill(name: string, step: number, dir = '.claude/skills'): string | undefined {
+  const path = `${dir}/${name}/SKILL.md`
+  return existsSync(path) ? undefined : `The ${name} skill is missing (${path}). Write it first: workshop/step-${step}.md`
+}
+
+/** The project's own SKILL.md, inlined into the prompt. Sending `/<name>` instead could run a same-named global or built-in skill. */
+export function readSkill(name: string, step: number): string {
+  const missing = missingSkill(name, step)
+  if (missing) {
+    console.error(missing)
+    process.exit(1)
+  }
+  return readFileSync(`.claude/skills/${name}/SKILL.md`, 'utf8')
 }

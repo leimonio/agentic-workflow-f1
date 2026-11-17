@@ -6,7 +6,7 @@
 
 1. `npm run seed -- --step 4` gives you a task PR if you are behind.
 2. `npm run pr:status -- --json`: checks, unresolved threads, visual state, human review state.
-3. `review` skill: leaves comments with `gh`.
+3. `review-pr` skill (not `review`: Claude Code has a built-in `/review`): leaves comments with `gh`.
 4. `babysit` skill, one pass per dispatch tick, for each thread:
    - **Necessary** (a real defect, a broken acceptance criterion, a repo rule it can cite): fix, reply, resolve.
    - **Anything else:** draft a reply, escalate, do not touch code. Never dismiss the human's comments silently.
