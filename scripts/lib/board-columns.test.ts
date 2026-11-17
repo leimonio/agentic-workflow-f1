@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COLUMNS, fromColumnValues, toColumnValues } from './board-columns.ts'
+import { COLUMNS, fromColumnValues, labelColor, toColumnValues } from './board-columns.ts'
 
 describe('board column mapping', () => {
   it('writes each column type in the shape monday expects', () => {
@@ -37,5 +37,11 @@ describe('board column mapping', () => {
     const ids = COLUMNS.map((c) => c.id)
     expect(new Set(ids).size).toBe(ids.length)
     for (const id of ids) expect(id).toMatch(/^[a-z_]{1,20}$/)
+  })
+
+  it('colours status labels by meaning: good green, bad red', () => {
+    expect(['Merged', 'Stable green', 'Accepted', 'Approved'].map(labelColor)).toEqual(Array(4).fill('done_green'))
+    expect(['Failed', 'Failing', 'Rejected', 'Blocked', 'Needs human', 'Changes requested'].map(labelColor)).toEqual(Array(6).fill('stuck_red'))
+    expect(labelColor('Queued')).toBe('explosive')
   })
 })
