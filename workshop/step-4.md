@@ -15,7 +15,7 @@ Behind? `git checkout step-3-solution && npm run seed -- --step 4` (a task PR to
 
 ## Do
 
-1. **Write `review-pr`** (`.claude/skills/review-pr/SKILL.md`): review one PR once and post line comments with `gh`, as one `COMMENT` review. Never approve. Call it `review-pr`, not `review`: Claude Code has a built-in `/review`.
+1. **Write `review-pr`** (`.claude/skills/review-pr/SKILL.md`): review one PR once and post line comments with `gh`, as one `COMMENT` review. Never approve. **Nothing worth a comment? Post nothing and report `0 comments`:** an invented comment costs a fix round and your time. Call it `review-pr`, not `review`: Claude Code has a built-in `/review`.
 2. **Write `babysit`** (`.claude/skills/babysit/SKILL.md`), with two sections the script selects:
    - `MODE: triage` (read-only): a thread is **necessary** only with evidence: a defect you can point to, a broken acceptance criterion (quoted), or a repo rule you can cite. Everything else is **discussion**: draft a reply, touch no code. When unsure, it is discussion.
    - `MODE: fix`: fix exactly the necessary threads, run the gate, quote it.
@@ -25,6 +25,13 @@ Behind? `git checkout step-3-solution && npm run seed -- --step 4` (a task PR to
    ```bash
    npm run dispatch -- --pr                 # builds the next task and opens its PR
    claude "/review-pr <pr-number>"          # or ask a neighbour to review
+   ```
+
+   Then add **two comments yourself** on the PR's Files tab, so both triage paths run even when the review found nothing:
+   - **Necessary**, with evidence: a file outside the task's file list, or an acceptance criterion with no test (quote it). On the seed PR: the `Link` line in `src/pages/DriverStandingsPage.tsx`, "Linking the standings is task t3, and this file is not in this task's files: drop it from this PR."
+   - **Discussion**, a question only you can decide. On the seed PR, on the results table in `DriverProfilePage.tsx`: "Should this table show sprint results too?"
+
+   ```bash
    npm run dispatch                         # necessary threads: fixed, replied, resolved
    npm run dispatch                         # discussion threads: escalated with a draft reply
    ```
@@ -40,5 +47,5 @@ Behind? `git checkout step-3-solution && npm run seed -- --step 4` (a task PR to
 ## Done when
 
 - `pr:status` shows CI green and 0 unresolved threads.
-- One thread was triaged as discussion and you saw the escalation.
+- The necessary thread was fixed and resolved; the discussion thread escalated with a draft reply and no code change.
 - Visual and Human review are set, by you.
