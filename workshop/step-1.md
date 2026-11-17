@@ -2,6 +2,12 @@
 
 **Goal:** turn "build X" into a repeatable skill. No loop yet: you re-prompt by hand.
 
+## Scripts you use now
+
+| Command | What it does |
+|---|---|
+| `npm run verify -- --json` | The checks, as JSON the agent can read. |
+
 ## Do
 
 1. Create `.claude/skills/build-feature/SKILL.md`. It must tell the agent to: read the task, read `CLAUDE.md`, write code **and** a unit test, a story and (for pages) an e2e test, run `npm run verify -- --json`, fix what it broke, and report.

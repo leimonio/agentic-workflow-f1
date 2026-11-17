@@ -16,23 +16,28 @@ A small React app (race calendar, race results, home) built for the workshop
 
 ## Scripts (all take `--json`; prefer `npm run -s <name> -- --json` for clean stdout)
 
-| Script | What it does |
-|---|---|
-| `npm run doctor [-- --fix]` | Checks Node, git, gh, claude, Playwright, tokens and repo settings. `--fix` applies what it can. |
-| `npm run format` | Prettier, writes in place. `verify` fails on any unformatted file (`format:<file>`). |
-| `npm run verify` | lint, format (Prettier check), types, unit, stories, e2e. Writes `.agent/verify.json` (`{check,id,status,message}[]`). Exits 1 if anything fails. |
-| `npm run baseline` | Runs verify on the merge base with `origin/main` (or `--base <ref>`, or `AGENT_BASE_BRANCH`) in a clean worktree. Writes `.agent/baseline.json`. |
-| `npm run gate` | Runs verify, diffs against the baseline. Exits 1 only on NEW failures. Reports new, pre-existing and fixed. |
-| `npm run visual:status` | Reads Chromatic's PR statuses for HEAD. Writes `.agent/visual.json`. |
-| `npm run build:loop -- <id>` | The build loop: one agent call per attempt, gate after each, max 3. Escalates with a handoff. |
-| `npm run plan:loop -- <id>` | Plan agent, schema check, plan-review agent, 2 retries. Writes the task items. |
-| `npm run dispatch [-- --watch] [-- --pr]` | One pass over the tracker; runs whatever stage each item is at. |
-| `npm run pr:status -- <id>` / `babysit -- <id>` | PR checks and threads; one verify tick (triage, fix, reply, resolve or escalate). |
-| `npm run merge -- <id>` | The merge gate: CI green, 0 threads, Visual Accepted, Human review Approved, mergeable → squash-merge. Else Blocked + handoff. |
-| `npm run item -- idea\|add\|approve\|reset\|show` | Human CLI for the tracker. `approve` is the human plan gate. |
-| `npm run board:setup` / `board:read` / `board:write` | monday board: create or complete it (idempotent), read items, write non-human fields. |
-| `npm run seed -- --step 3\|4\|5` | Catch-up: recreates the tracker items (and for 4-5 the `seed/task-pr` PR) a step starts from. Idempotent. |
-| `npm run data:fetch` | Author-only. Re-downloads the season snapshot. The app and tests never use the network. |
+Grouped by the workshop step that introduces them. All of them are here from the start.
+
+| Step | Script | What it does |
+|---|---|---|
+| 0 | `npm run doctor [-- --fix]` | Checks Node, git, gh, claude, Playwright, tokens and repo settings. `--fix` applies what it can. |
+| 0 | `npm run verify` | lint, format (Prettier check), types, unit, stories, e2e. Writes `.agent/verify.json` (`{check,id,status,message}[]`). Exits 1 if anything fails. |
+| 0 | `npm run baseline` | Runs verify on the merge base with `origin/main` (or `--base <ref>`, or `AGENT_BASE_BRANCH`) in a clean worktree. Writes `.agent/baseline.json`. |
+| 0 | `npm run gate` | Runs verify, diffs against the baseline. Exits 1 only on NEW failures. Reports new, pre-existing and fixed. |
+| 0 | `npm run format` | Prettier, writes in place. `verify` fails on any unformatted file (`format:<file>`). |
+| 2 | `npm run item -- add\|show\|reset` | Human CLI for the tracker. `reset` is the only way to re-run a stage. |
+| 2 | `npm run build:loop -- <id>` | The build loop: one agent call per attempt, gate after each, max 3. `decide()` in `scripts/lib/loop.ts` picks the next move. Escalates with a handoff. |
+| 2 | `npm run visual:status` | Reads Chromatic's PR statuses for HEAD. Writes `.agent/visual.json`. |
+| 3 | `npm run board:setup` / `board:read` / `board:write` | monday board: create or complete it (idempotent), read items, write non-human fields. |
+| 3 | `npm run item -- idea\|approve` | Add an idea; `approve` is the human plan gate (on monday, tick Plan approved). |
+| 3 | `npm run plan:loop -- <id>` | Plan agent, schema check, plan-review agent, 2 retries. Writes the task items. |
+| 3 | `npm run dispatch [-- --pr] [-- --watch]` | One pass over the tracker; runs whatever stage each item is at. Prints the tracker first. |
+| 4 | `npm run pr:status -- <id>` / `babysit -- <id>` | PR checks and threads; one verify tick (triage, fix, reply, resolve or escalate). |
+| 4 | `npm run item -- visual\|review <id> …` | The two human PR gates. |
+| 5 | `npm run merge -- <id>` | The merge gate: CI green, 0 threads, Visual Accepted, Human review Approved, mergeable → squash-merge. Else Blocked + handoff. |
+| 5 | `npm run dispatch -- --until-idle` | Repeats passes until one changes nothing (max 10). |
+| any | `npm run seed -- --step 3\|4\|5` | Catch-up: recreates the tracker items (and for 4-5 the `seed/task-pr` PR) a step starts from. Idempotent. |
+| — | `npm run data:fetch` | Author-only. Re-downloads the season snapshot. The app and tests never use the network. |
 
 Workflow for any change: `npm run baseline` once, edit, `npm run gate` until it reports 0 new failures.
 
