@@ -39,6 +39,8 @@ export interface Handoff {
 export interface Tracker {
   list(): Promise<Item[]>
   get(id: string): Promise<Item>
+  /** Returns the new id. (Not in the spec's list: monday assigns ids, so an upsert by our own id cannot work.) */
+  create(fields: Omit<Item, 'id'>): Promise<string>
   update(id: string, fields: Partial<Item>): Promise<void>
   log(id: string, line: string): Promise<void>
   handoff(id: string, record: Handoff): Promise<void>
