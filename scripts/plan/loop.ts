@@ -1,7 +1,7 @@
 // The plan loop: plan agent → schema check → plan-review agent, at most 2 retries. Then the human plan gate.
 // The script, not the agent, creates the task items.
 //   npm run plan:loop -- <idea-id>
-import { runAgent } from '../lib/agent.ts'
+import { readSkill, runAgent } from '../lib/agent.ts'
 import { PLAN_RETRIES, PLAN_SCHEMA, renderTask, REVIEW_SCHEMA, validatePlan, type PlanVerdict, type ReviewVerdict } from '../lib/plan.ts'
 import { logLine } from '../lib/tracker.ts'
 import { trackerFromEnv } from '../lib/tracker-from-env.ts'
@@ -15,6 +15,8 @@ const tracker = trackerFromEnv()
 const idea = await tracker.get(id)
 const say = (s: string) => console.log(`[plan ${id}] ${s}`)
 const READ_ONLY = ['Read', 'Glob', 'Grep']
+const PLAN_SKILL = readSkill('plan-tasks', 3)
+const REVIEW_SKILL = readSkill('plan-review', 3)
 
 await tracker.update(id, { plan: 'Planning' })
 await tracker.log(id, logLine('Plan', 'Planning'))
@@ -27,7 +29,7 @@ for (let n = 1; n <= 1 + PLAN_RETRIES && !accepted && !question; n++) {
   say(`attempt ${n}/${1 + PLAN_RETRIES}: plan`)
   const plan = runAgent<PlanVerdict>(
     [
-      `/plan ${idea.title}: ${idea.description}`,
+      `${PLAN_SKILL}\n\nIdea: ${idea.title}: ${idea.description}`,
       feedback.length ? `\nYour previous plan was rejected. Fix exactly these:\n${feedback.map((f) => `- ${f}`).join('\n')}` : '',
     ].join('\n'),
     { schema: PLAN_SCHEMA, tools: READ_ONLY, budgetUsd: 1.5 },
@@ -45,7 +47,7 @@ for (let n = 1; n <= 1 + PLAN_RETRIES && !accepted && !question; n++) {
     continue
   }
   say(`schema ok (${plan.tasks!.length} tasks). plan-review`)
-  const review = runAgent<ReviewVerdict>(`/plan-review\n\nIdea: ${idea.title}: ${idea.description}\n\nPlan:\n${JSON.stringify(plan.tasks, null, 2)}`, {
+  const review = runAgent<ReviewVerdict>(`${REVIEW_SKILL}\n\nIdea: ${idea.title}: ${idea.description}\n\nPlan:\n${JSON.stringify(plan.tasks, null, 2)}`, {
     schema: REVIEW_SCHEMA,
     tools: READ_ONLY,
     budgetUsd: 1,
