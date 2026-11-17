@@ -1,9 +1,9 @@
 ---
-name: review
-description: Review one PR of this repo and leave line comments on GitHub with gh, as the user. One pass. Use when the user says "review PR N" or a script calls /review.
+name: review-pr
+description: Review one PR of this repo and leave line comments on GitHub with gh, as the user. One pass. Use when the user says "review-pr N" or "review PR N".
 ---
 
-# review
+# review-pr
 
 You review a PR once and leave **line comments** (each becomes a review thread that `babysit` triages). You do not approve or request changes: the human review gate is the `Human review` field, not GitHub.
 
