@@ -2,6 +2,8 @@
 
 **Goal:** an idea goes on a monday board, an agent plans it, **you** approve the plan on the board, and dispatch builds the first task. The scripts are ready; you write the two planning skills.
 
+Behind? `git checkout step-2-solution`.
+
 ## Scripts you use now
 
 | Command | What it does |
