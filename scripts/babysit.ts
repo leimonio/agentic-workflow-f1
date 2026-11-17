@@ -3,7 +3,7 @@
 //   npm run babysit -- <item-id>
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { runAgent, type Verdict } from './lib/agent.ts'
+import { readSkill, runAgent, type Verdict } from './lib/agent.ts'
 import { fetchPr, replyToThread, resolveThread } from './lib/github.ts'
 import { MAX_FIX_ROUNDS, verifyAction, type Thread } from './lib/pr.ts'
 import { runBaseline, runGate } from './lib/run-gate.ts'
@@ -45,7 +45,7 @@ if (!item.pr) throw new Error(`${id} has no PR`)
 const say = (s: string) => console.log(`[babysit ${id}] ${s}`)
 const git = (...a: string[]) => execFileSync('git', a, { encoding: 'utf8' }).trim()
 // Read now: the PR branch may not have the skill (it was cut before the skill was written).
-const SKILL = readFileSync('.claude/skills/babysit/SKILL.md', 'utf8')
+const SKILL = readSkill('babysit', 4)
 // shortcut: babysit state lives in .agent/ even with the monday tracker; move it to columns if several machines babysit.
 const stateFile = `.agent/babysit/${id}.json`
 const state: State = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : { rounds: 0, triaged: {}, replied: [] }
