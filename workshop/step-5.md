@@ -1,39 +1,49 @@
-# Step 5: merge gate (stretch, 15 min)
+# Step 5: merge and `/flow` (15 min, stretch)
 
-**Goal:** the merge is one more gate, not a judgment.
+**Goal:** merging is one more gate, not a judgment. Then one skill drives the whole board and stops at every gate with the command for you.
+
+Behind? `git checkout step-4-solution && npm run seed -- --step 5` (a babysat PR waiting only for your gates).
+
+## Scripts you use now
+
+| Command | What it does |
+|---|---|
+| `npm run merge -- <id>` | No agent. CI green, 0 threads, Visual Accepted, Human review Approved, mergeable → squash-merge. Else Merge = Blocked with every blocker listed. Dispatch runs it for you. |
+| `npm run dispatch -- --pr --until-idle` | Repeats passes until one changes nothing (max 10): everything left waits on a human. |
+| `npm run item -- reset <id> merge` | Try the merge again. |
+
+Branch protection requires only the `gate` check: `npm run doctor` tells you if it is missing, `-- --fix` sets it.
 
 ## Do
 
-0. Behind? On `step-4-solution`, `npm run seed -- --step 5` gives you a babysat task PR that waits only for the two human gates.
-1. `merge` skill runs a script that checks: CI green, 0 open threads, `Visual = Accepted`, `Human review = Approved`, PR mergeable.
-2. If all hold: `gh pr merge --squash`. Otherwise it escalates with what is missing.
-3. Branch protection requires only the `gate` check. `npm run doctor` tells you if it is missing; `-- --fix` sets it.
+1. **See the merge gate refuse.**
+
+   ```bash
+   npm run item -- review <id> changes
+   npm run merge -- <id>                    # Blocked: Human review is Changes requested
+   npm run item -- review <id> approved
+   npm run item -- reset <id> merge
+   npm run dispatch                         # → merged PR, task moves to Done
+   ```
+
+2. **Write `flow`** (`.claude/skills/flow/SKILL.md`): run `npm run -s dispatch -- --pr --until-idle`, run `review-pr` once on each new PR, run dispatch again, then print one line per `waiting:` line with the exact command for the human. Never set a gate, never merge, never loop dispatch itself.
+3. Add an idea to the board, then say `flow` in Claude Code. Run the gate commands it gives you, say `flow` again.
+
+## Split
+
+| Script | Agent | You |
+|---|---|---|
+| merge blockers, the merge, every board write, the pass loop | orders the scripts, reviews, reports | every gate |
 
 ## Done when
 
-- The babysat PR is merged and the item is Done.
-- You can name the one condition you would add for your own repo.
+- A PR merged through `merge`, and its task is in Done on the board.
+- `/flow` took a new idea to "waiting on you" without you typing a script.
+- You can name the one merge condition you would add for your own repo.
 
 ## What changed on `step-5-solution`
 
 | File | What |
 |---|---|
-| `scripts/merge.ts` | `npm run merge -- <item-id>`. No agent. Re-reads the PR live, runs `mergeBlockers`, then `gh pr merge --squash` and checks GitHub says MERGED, or sets Merge = Blocked with a handoff listing every blocker. Keeps the branch (stacked tasks use it as their base). |
-| `.claude/skills/merge/SKILL.md` | Runs the script and quotes it. Never `gh pr merge` directly, never sets a gate. |
-| `scripts/dispatch.ts` | The `merge` stage runs `merge`. `nextStage` only reaches it when Verify = Stable green, Visual = Accepted and Human review = Approved. `--until-idle` repeats passes until a pass changes nothing (max 10). |
-| `.claude/skills/flow/SKILL.md` | `/flow`: runs `dispatch --pr --until-idle`, reviews new PRs once, runs dispatch again, then prints the exact gate commands for you. It never sets a gate. |
-| `scripts/item.ts` | `reset <id> merge`: Merge = Waiting, clears Needs human. |
-
-Branch protection: `npm run doctor` checks that the default branch requires the `gate` check (and that Actions and auto-merge are on); `-- --fix` sets it with `gh api … /branches/main/protection`. It requires no approving review on purpose: you cannot approve your own PR, and the merge permission is `Human review` = Approved in the tracker. Public repos (or GitHub Pro) only; GitHub Free silently ignores protection on private repos.
-
-### Try it
-
-```bash
-npm run item -- review <item-id> changes
-npm run merge -- <item-id>                 # blocked: Human review is Changes requested
-npm run item -- review <item-id> approved
-npm run item -- reset <item-id> merge
-npm run dispatch                           # → merge → merged PR #N
-```
-
-Once it works by hand, `/flow` in Claude Code drives the board for you and stops at every gate with the command to run.
+| `.claude/skills/flow/SKILL.md` | `/flow`: dispatch until idle, review new PRs once, dispatch again, then the gate commands for you. Never sets a gate. |
+| `.claude/skills/merge/SKILL.md` | Optional: runs `npm run merge` and quotes it. Never `gh pr merge`, never sets a gate. |
