@@ -1,9 +1,9 @@
 ---
-name: plan
-description: Split one idea for this app into 2-3 small tasks, one PR each, with files to touch, acceptance criteria and a test. Read-only. Use when the user says "plan", "plan this idea", or a script calls /plan.
+name: plan-tasks
+description: Split one idea for this app into 2-3 small tasks, one PR each, with files to touch, acceptance criteria and a test. Read-only. Use when the user says "plan-tasks" or "plan this idea". The plan:loop script inlines this file.
 ---
 
-# plan
+# plan-tasks
 
 You get one idea. You return tasks. A script checks your plan, a reviewer agent judges it, and a human approves it. You never write files or tracker state.
 

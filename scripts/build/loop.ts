@@ -4,7 +4,7 @@
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { option } from '../lib/args.ts'
-import { runAgent } from '../lib/agent.ts'
+import { readSkill, runAgent } from '../lib/agent.ts'
 import { decide, MAX_ATTEMPTS, type Attempt } from '../lib/loop.ts'
 import { runBaseline, runGate as gate } from '../lib/run-gate.ts'
 import { logLine } from '../lib/tracker.ts'
@@ -19,6 +19,7 @@ const max = Number(option('max') ?? MAX_ATTEMPTS)
 const tracker = trackerFromEnv()
 const item = await tracker.get(id)
 const say = (s: string) => console.log(`[build ${id}] ${s}`)
+const SKILL = readSkill('build-feature', 1)
 
 say('baseline')
 runBaseline()
@@ -31,7 +32,7 @@ let decision = decide(attempts, max)
 while (decision.kind === 'attempt') {
   const n = attempts.length + 1
   const prompt = [
-    `/build-feature ${item.description}`,
+    `${SKILL}\n\nTask: ${item.description}`,
     '',
     `You are inside a script-owned loop. This is attempt ${n} of ${max}. Do not count attempts or retry on your own: make your best change once, run \`npm run -s gate -- --json\`, and return the verdict.`,
     lastMessages.length ? `The gate's NEW failures after the previous attempt (fix only these):\n${lastMessages.join('\n')}` : '',
