@@ -1,0 +1,26 @@
+{
+  "idea": {
+    "title": "Driver profile page",
+    "type": "Idea",
+    "description": "A page per driver at /drivers/:id with their name, team, points, wins and a race-by-race results table. Link each driver name in the driver standings to it.",
+    "planDetails": "Three PRs. t1 adds pure profile logic in src/lib, with `teamOf` moved out of DriverStandingsPage. t2 adds the /drivers/:id page with its route, story and tests. t3 links driver names in the standings to it. Each leaves the app working. Points and wins reuse `driverStandings`, so the profile always matches the standings table. Sprint results are not shown in the race table, because the idea asked only for race-by-race results. Sprint points are still counted in the total, as in the standings.\n\n- driver-profile-logic-in-lib: Driver profile logic in lib\n- driver-profile-page-and-route: Driver profile page and route\n- link-standings-to-driver-profiles: Link standings to driver profiles"
+  },
+  "t1": {
+    "title": "Driver profile logic in lib",
+    "type": "Task",
+    "description": "Add a pure function that builds a driver's profile (team, points, wins, per-race results) from races, and share `teamOf` instead of keeping it private to the standings page.",
+    "planDetails": "Responsibility: Add a pure function that builds a driver's profile (team, points, wins, per-race results) from races, and share `teamOf` instead of keeping it private to the standings page.\n\nFiles:\n- src/lib/driverProfile.ts\n- src/lib/driverProfile.test.ts\n- src/pages/DriverStandingsPage.tsx\n\nAcceptance:\n- driverProfile(races, driverId) returns { team, points, wins, results[] }, with results as { round, raceName, grid, position, status, points } ordered by round\n- points and wins equal the driver's row from driverStandings\n- team is the constructor of the driver's last classified race\n- returns undefined for an unknown driver id or a driver with no results\n- DriverStandingsPage imports the shared team helper and renders exactly as before\n- npm run gate reports 0 new failures\n\nTest: src/lib/driverProfile.test.ts: with fixture races, checks the points/wins totals against driverStandings, the round ordering, the team from the last race, a mid-season team change, and undefined for an unknown driver."
+  },
+  "t2": {
+    "title": "Driver profile page and route",
+    "type": "Task",
+    "description": "Add the /drivers/:id page showing name, team, points, wins and a race-by-race results table, with a not-found state.",
+    "planDetails": "Responsibility: Add the /drivers/:id page showing name, team, points, wins and a race-by-race results table, with a not-found state.\n\nFiles:\n- src/pages/DriverProfilePage.tsx\n- src/pages/DriverProfilePage.test.tsx\n- src/pages/DriverProfilePage.stories.tsx\n- src/App.tsx\n- e2e/driver-profile.spec.ts\n\nAcceptance:\n- /drivers/:id shows the driver's full name, team (TeamSwatch), points, wins and a table with one row per race (race name, grid, finish, status, points)\n- an unknown id shows a clear not-found message and does not crash\n- route registered in src/App.tsx\n- no top-level nav link is added (this is a detail page)\n- npm run gate reports 0 new failures\n\nTest: src/pages/DriverProfilePage.test.tsx (renderAt('/drivers/<id>')): asserts name, team, points, wins, table row count and the not-found state. e2e/driver-profile.spec.ts: opens /drivers/<id> directly and checks the heading and the results table. Story with the withRouter decorator."
+  },
+  "t3": {
+    "title": "Link standings to driver profiles",
+    "type": "Task",
+    "description": "Make each driver name in the driver standings a link to /drivers/:id.",
+    "planDetails": "Responsibility: Make each driver name in the driver standings a link to /drivers/:id.\n\nFiles:\n- src/pages/DriverStandingsPage.tsx\n- src/pages/DriverStandingsPage.test.tsx\n- e2e/site.spec.ts\n\nAcceptance:\n- each driver name in the standings table is a link with href /drivers/<driverId>\n- the rendered text and the other columns are unchanged\n- clicking a name in the browser lands on the matching profile page\n- npm run gate reports 0 new failures\n\nTest: Extend src/pages/DriverStandingsPage.test.tsx: the leader's name is a link with the correct href. Extend e2e/site.spec.ts: click a driver in the standings and expect the profile heading."
+  }
+}

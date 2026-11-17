@@ -1,0 +1,154 @@
+diff --git a/e2e/driver-profile.spec.ts b/e2e/driver-profile.spec.ts
+new file mode 100644
+index 0000000..1865cdf
+--- /dev/null
++++ b/e2e/driver-profile.spec.ts
+@@ -0,0 +1,12 @@
++import { expect, test } from '@playwright/test'
++
++test('driver profile opens directly with heading and results table', async ({ page }) => {
++  await page.goto('/drivers/norris')
++  await expect(page.getByRole('heading', { level: 1, name: /Norris/ })).toBeVisible()
++  await expect(page.getByRole('table')).toBeVisible()
++})
++
++test('unknown driver shows a not-found message', async ({ page }) => {
++  await page.goto('/drivers/nobody')
++  await expect(page.getByRole('heading', { name: 'Driver not found' })).toBeVisible()
++})
+diff --git a/src/App.tsx b/src/App.tsx
+index 95f6c17..c92c2bd 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
+ import { Layout } from '@/components/Layout'
+ import { CalendarPage } from '@/pages/CalendarPage'
+ import { ConstructorStandingsPage } from '@/pages/ConstructorStandingsPage'
++import { DriverProfilePage } from '@/pages/DriverProfilePage'
+ import { DriverStandingsPage } from '@/pages/DriverStandingsPage'
+ import { HomePage } from '@/pages/HomePage'
+ import { RacePage } from '@/pages/RacePage'
+@@ -13,6 +14,7 @@ export const routes = [
+       { path: '/', element: <HomePage /> },
+       { path: '/calendar', element: <CalendarPage /> },
+       { path: '/standings/drivers', element: <DriverStandingsPage /> },
++      { path: '/drivers/:id', element: <DriverProfilePage /> },
+       { path: '/standings/constructors', element: <ConstructorStandingsPage /> },
+       { path: '/races/:round', element: <RacePage /> },
+     ],
+diff --git a/src/pages/DriverProfilePage.stories.tsx b/src/pages/DriverProfilePage.stories.tsx
+new file mode 100644
+index 0000000..9b3666b
+--- /dev/null
++++ b/src/pages/DriverProfilePage.stories.tsx
+@@ -0,0 +1,8 @@
++import type { Meta, StoryObj } from '@storybook/react-vite'
++import { withRouter } from '@/test/story-router'
++import { DriverProfilePage } from './DriverProfilePage'
++
++const meta = { title: 'Pages/Driver profile', component: DriverProfilePage } satisfies Meta<typeof DriverProfilePage>
++export default meta
++export const Norris: StoryObj<typeof meta> = { decorators: [withRouter('/drivers/:id', '/drivers/norris')] }
++export const NotFound: StoryObj<typeof meta> = { decorators: [withRouter('/drivers/:id', '/drivers/nobody')] }
+diff --git a/src/pages/DriverProfilePage.test.tsx b/src/pages/DriverProfilePage.test.tsx
+new file mode 100644
+index 0000000..9a81bc2
+--- /dev/null
++++ b/src/pages/DriverProfilePage.test.tsx
+@@ -0,0 +1,28 @@
++import { screen, within } from '@testing-library/react'
++import { describe, expect, it } from 'vitest'
++import { constructorById, driverById, season } from '@/data/season'
++import { driverProfile } from '@/lib/drivers'
++import { driverStandings } from '@/lib/standings'
++import { renderAt } from '@/test/render'
++
++describe('DriverProfilePage', () => {
++  it('shows name, points, wins and one row per race', () => {
++    const leader = driverStandings(season.races)[0]
++    if (!leader) throw new Error('season has no standings')
++    const profile = driverProfile(season.races, leader.id)
++    renderAt(`/drivers/${leader.id}`)
++    const driver = driverById(leader.id)
++    if (!driver || !profile.team) throw new Error('missing driver or team')
++    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`${driver.givenName} ${driver.familyName}`)
++    expect(screen.getByText(constructorById(profile.team)?.name ?? profile.team)).toBeInTheDocument()
++    expect(screen.getByText(new RegExp(`${profile.points} pts`))).toBeInTheDocument()
++    expect(screen.getByText(new RegExp(`${profile.wins} wins?`))).toBeInTheDocument()
++    expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(profile.results.length + 1)
++  })
++
++  it('handles an unknown driver', () => {
++    renderAt('/drivers/nobody')
++    expect(screen.getByRole('heading', { name: 'Driver not found' })).toBeInTheDocument()
++    expect(screen.getByRole('link', { name: 'Back to the standings' })).toHaveAttribute('href', '/standings/drivers')
++  })
++})
+diff --git a/src/pages/DriverProfilePage.tsx b/src/pages/DriverProfilePage.tsx
+new file mode 100644
+index 0000000..a622d82
+--- /dev/null
++++ b/src/pages/DriverProfilePage.tsx
+@@ -0,0 +1,44 @@
++import { Link, useParams } from 'react-router'
++import { TeamSwatch } from '@/components/TeamSwatch'
++import { Table, Td, Th } from '@/components/ui/table'
++import { driverById, season } from '@/data/season'
++import { driverProfile } from '@/lib/drivers'
++
++export function DriverProfilePage() {
++  const id = useParams().id ?? ''
++  const driver = driverById(id)
++  if (!driver) {
++    return (
++      <div>
++        <h1 className="text-2xl font-bold">Driver not found</h1>
++        <Link className="underline" to="/standings/drivers">Back to the standings</Link>
++      </div>
++    )
++  }
++  const profile = driverProfile(season.races, id)
++  const name = `${driver.givenName} ${driver.familyName}`
++  return (
++    <div className="space-y-4">
++      <h1 className="text-2xl font-bold">{name}</h1>
++      <p className="text-sm text-muted-foreground">
++        {profile.team ? <TeamSwatch constructorId={profile.team} /> : '—'} · {profile.points} pts · {profile.wins} {profile.wins === 1 ? 'win' : 'wins'}
++      </p>
++      <Table>
++        <caption className="sr-only">{name} 2025 results</caption>
++        <thead><tr><Th>Round</Th><Th>Race</Th><Th>Grid</Th><Th>Pos</Th><Th>Status</Th><Th>Pts</Th></tr></thead>
++        <tbody>
++          {profile.results.map((r) => (
++            <tr key={r.round}>
++              <Td>{r.round}</Td>
++              <Td><Link className="underline" to={`/races/${r.round}`}>{r.name}</Link></Td>
++              <Td>{r.grid}</Td>
++              <Td>{r.position}</Td>
++              <Td>{r.status}</Td>
++              <Td>{r.points}</Td>
++            </tr>
++          ))}
++        </tbody>
++      </Table>
++    </div>
++  )
++}
+diff --git a/src/pages/DriverStandingsPage.tsx b/src/pages/DriverStandingsPage.tsx
+index 578779c..e7966f9 100644
+--- a/src/pages/DriverStandingsPage.tsx
++++ b/src/pages/DriverStandingsPage.tsx
+@@ -1,3 +1,4 @@
++import { Link } from 'react-router'
+ import { TeamSwatch } from '@/components/TeamSwatch'
+ import { Table, Td, Th } from '@/components/ui/table'
+ import { driverById, season } from '@/data/season'
+@@ -19,7 +20,7 @@ export function DriverStandingsPage() {
+             return (
+               <tr key={r.id}>
+                 <Td>{r.position}</Td>
+-                <Td>{d ? `${d.givenName} ${d.familyName}` : r.id}</Td>
++                <Td><Link className="underline" to={`/drivers/${r.id}`}>{d ? `${d.givenName} ${d.familyName}` : r.id}</Link></Td>
+                 <Td>{team ? <TeamSwatch constructorId={team} /> : '—'}</Td>
+                 <Td>{r.wins}</Td>
+                 <Td>{r.points}</Td>
