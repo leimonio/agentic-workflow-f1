@@ -2,6 +2,17 @@
 
 **Goal:** a working checkout, and a clear picture of what is a script and what is the agent.
 
+Every script is already in the repo (`CLAUDE.md` lists them by step). You will not write scripts today: you write the agent side (skills, hooks, one decision function) and run the scripts. Each step starts with the scripts it uses.
+
+## Scripts you use now
+
+| Command | What it does |
+|---|---|
+| `npm run doctor [-- --fix]` | Checks Node, git, gh, claude, Playwright and the repo settings. Every failure prints its fix. |
+| `npm run verify` | lint, format, types, unit, stories, e2e. Exits 1 if anything fails. |
+| `npm run baseline` | Records the failures that exist before your change. |
+| `npm run gate` | verify, minus the baseline: fails only on **new** failures. |
+
 ## Before you start
 
 Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You need nvm (or Node 24+), git, the GitHub CLI and Claude Code; `npm run doctor` prints the install command for anything missing.
