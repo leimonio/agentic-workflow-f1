@@ -35,6 +35,23 @@ export const COLUMNS: Column[] = [
 export const LOG_COLUMN = { id: 'agent_log', title: 'Agent log', type: 'long_text' as const }
 export const GROUPS = ['Ideas', 'Tasks', 'Done'] as const
 
+// Status colours by meaning: green = good outcome, red = failed or needs a human, orange = working, yellow = waiting on a human.
+// The number is monday's colour id (what `columns { settings }` returns); the name is the StatusColumnColors enum.
+export const COLOR_ID = { working_orange: 0, done_green: 1, stuck_red: 2, purple: 4, explosive: 5, bright_blue: 7, egg_yolk: 9 } as const
+type Color = keyof typeof COLOR_ID
+const GOOD = ['Approved', 'Done', 'Green', 'Stable green', 'Accepted', 'Merged']
+const BAD = ['Failed', 'Failing', 'Rejected', 'Blocked', 'Needs human', 'Changes requested']
+const WORKING = ['Planning', 'In progress', 'Fixing', 'Watching']
+export function labelColor(label: string): Color {
+  if (GOOD.includes(label)) return 'done_green'
+  if (BAD.includes(label)) return 'stuck_red'
+  if (WORKING.includes(label)) return 'working_orange'
+  if (label === 'Awaiting approval') return 'egg_yolk'
+  if (label === 'Idea') return 'purple'
+  if (label === 'Task') return 'bright_blue'
+  return 'explosive' // grey: not started, queued, pending, waiting
+}
+
 /** Item fields → the `column_values` JSON for change_multiple_column_values. `undefined` fields are skipped. */
 export function toColumnValues(fields: Partial<Item>): Record<string, unknown> {
   const out: Record<string, unknown> = {}
