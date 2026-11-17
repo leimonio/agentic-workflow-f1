@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { localTracker } from './local-tracker.ts'
+import { trackerLabel } from './tracker-from-env.ts'
 import { renderHandoff } from './tracker.ts'
 
 describe('local tracker', () => {
@@ -33,4 +34,9 @@ describe('renderHandoff', () => {
     expect(md.match(/^## /gm)).toHaveLength(4)
     expect(md).toContain('2. y')
   })
+})
+
+describe('trackerLabel', () => {
+  it('names the local folder', () => expect(trackerLabel('local')).toBe('local (.agent/items)'))
+  it('links the monday board', () => expect(trackerLabel('monday', '123')).toBe('monday (https://monday.com/boards/123)'))
 })
