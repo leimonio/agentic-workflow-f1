@@ -48,6 +48,9 @@ export function mondayTracker(): Tracker {
       const values: Record<string, unknown> = toColumnValues(rest)
       if (title) values.name = title
       if (Object.keys(values).length) await write(id, values)
+      // Merged tasks leave the Tasks group, so the board shows what is still in flight.
+      if (fields.merge === 'Merged')
+        await gql(`mutation ($i: ID!, $g: String!) { move_item_to_group(item_id: $i, group_id: $g) { id } }`, { i: id, g: groups.Done })
     },
     async log(id, line) {
       const prev = (await raw(id)).column_values.find((c) => c.id === LOG_COLUMN.id)?.text ?? ''
