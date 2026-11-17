@@ -18,8 +18,8 @@ if (!boardId) {
   created.push(`board ${boardId}`)
 }
 
-const q = await gql<{ boards: { name: string; groups: { id: string; title: string }[]; columns: { id: string; title: string }[] }[] }>(
-  `query ($b: [ID!]) { boards(ids: $b) { name groups { id title } columns { id title } } }`,
+const q = await gql<{ boards: { name: string; url: string; groups: { id: string; title: string }[]; columns: { id: string; title: string }[] }[] }>(
+  `query ($b: [ID!]) { boards(ids: $b) { name url groups { id title } columns { id title } } }`,
   { b: [boardId] },
 )
 const board = q.boards[0]
@@ -60,4 +60,5 @@ for (const c of [...COLUMNS, LOG_COLUMN]) {
 mkdirSync('.agent', { recursive: true })
 writeFileSync(BOARD_FILE, JSON.stringify({ boardId, groups } satisfies BoardConfig, null, 2) + '\n')
 console.log(created.length ? `board:setup created ${created.length}: ${created.join(', ')}` : `board:setup: board ${boardId} already complete, nothing created`)
+console.log(`Board: ${board.name} ${board.url}`)
 console.log(`Wrote ${BOARD_FILE}. Use it with AGENT_TRACKER=monday.`)
