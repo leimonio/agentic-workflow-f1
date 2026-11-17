@@ -9,6 +9,7 @@
 2. `npm run board:setup` (idempotent: second run changes nothing). Needs `MONDAY_API_TOKEN` in `.env`.
    - It **creates its own empty board** and saves the id in `.agent/board.json`. Never point it at a board you already use: one mistake mixes agent items with yours. `--adopt <id>` is for a human who chooses to.
    - It prints `Board: <name> <url>` on every run, so you know which board it changed.
+   - Groups: **Ideas**, **Tasks** and **Done**. New items go to Ideas or Tasks by type; a task moves to Done when it is merged (step 5), so the board shows what is still in flight.
    - Every stage field, and Type (`Idea`, `Task`), is a **status column** with fixed labels: a human filters and clicks them, not types them.
    - Column order is reading order: Type, Needs human, then the stages in workflow order with the human gates among them (Plan, Plan approved, Build, CI, Verify, Visual, Human review, Merge), then PR and the bookkeeping columns, long text last. monday adds columns on the right, so create them in that order.
 3. `board:read` and `board:write` are thin CLIs over `Tracker`.
