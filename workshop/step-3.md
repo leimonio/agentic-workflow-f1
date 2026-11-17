@@ -44,7 +44,7 @@
 | `scripts/lib/plan.ts` | The plan JSON schema and `validatePlan` (files, criteria, test, max 15 files, unknown deps, cycles). |
 | `scripts/plan/loop.ts` | plan agent → schema check → plan-review agent, 2 retries, then `Awaiting approval` or a handoff. |
 | `scripts/dispatch.ts` | One pass: `queue` is deterministic, `build` branches from the current branch (or stacks on an unmerged dependency), runs `build:loop` with that base for the baseline, commits. A loop that exits without a handoff is reported as a crash, not an escalation. `--pr` pushes and opens the PR. |
-| `.claude/skills/plan`, `plan-review` | The two read-only skills. |
+| `.claude/skills/plan-tasks`, `plan-review` | The two read-only skills. |
 | `scripts/item.ts` | `idea` and `approve` (the local human plan gate). |
 | `src/lib/drivers.ts` | Task 1 of the driver profile plan, built by dispatch. |
 

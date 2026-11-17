@@ -1,6 +1,6 @@
 ---
 name: plan-review
-description: Review a task plan for single responsibility (one concern per PR, nothing bundled that could land on its own) and for broken in-between states. Read-only, one pass. Use when a script calls /plan-review or the user asks to review a plan.
+description: Review a task plan for single responsibility (one concern per PR, nothing bundled that could land on its own) and for broken in-between states. Read-only, one pass. Use when the user asks to review a plan. The plan:loop script inlines this file.
 ---
 
 # plan-review
