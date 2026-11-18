@@ -26,6 +26,14 @@ Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You 
 5. `npm run baseline && npm run gate`. The gate says `PASS (0 new, 1 pre-existing)`.
 6. Open `CLAUDE.md`. Find the rule about "verified".
 7. `npm run dev` and click through Home, Calendar and a race.
+8. *(Optional safety net)* Add the template as a remote so you can jump to a solution branch if you get stuck later:
+
+   ```bash
+   git remote add template https://github.com/leimonio/agentic-workflow-f1.git
+   git fetch template
+   ```
+
+   If you are behind at step N: `git stash -u && git checkout -b step-(N-1)-solution template/step-(N-1)-solution && npm ci && npm run baseline`
 
 ## The line you will keep drawing
 
@@ -37,4 +45,5 @@ Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You 
 
 - `npm run doctor` shows no ✘.
 - `npm run gate` exits 0 and says 1 pre-existing.
+- (Optional) `git remote -v` lists `template`.
 - You can say why the gate passes although a test fails (the baseline remembers it; only NEW failures count).
