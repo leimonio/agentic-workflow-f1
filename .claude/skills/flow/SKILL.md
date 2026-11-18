@@ -12,7 +12,7 @@ You save the human from typing dispatch, review and merge commands one by one. T
 1. Run `npm run -s dispatch -- --pr --until-idle`. It repeats passes until a pass changes nothing (max 10). Do not loop it yourself.
 2. For each `PR <url>` line in that output, run the `review-pr` skill on that PR once. Skip PRs you already reviewed in this session.
 3. If step 2 posted any review, run `npm run -s dispatch -- --pr --until-idle` again so babysit triages the new threads.
-4. Report as a to-do list for the human, one line per `waiting:` line from the last run, with the exact command:
+4. Report as a to-do list for the human, one line per entry in the final `waiting on you:` block, with the exact command:
 
    | Waiting on | What the human does first | Command |
    |---|---|---|
