@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { readSkill, runAgent, type Verdict } from './lib/agent.ts'
 import { fetchPr, replyToThread, resolveThread } from './lib/github.ts'
-import { MAX_FIX_ROUNDS, verifyAction, type Thread } from './lib/pr.ts'
+import { gatesAfterPush, MAX_FIX_ROUNDS, verifyAction, type Thread } from './lib/pr.ts'
 import { runBaseline, runGate } from './lib/run-gate.ts'
 import { handoffPath, logLine } from './lib/tracker.ts'
 import { trackerFromEnv } from './lib/tracker-from-env.ts'
@@ -156,9 +156,10 @@ async function fix(threads: Thread[]) {
       state.replied.push(t.id)
     }
     save()
-    await tracker.log(id, logLine('Verify', `fix round ${state.rounds}: pushed ${sha}, resolved ${threads.length} thread(s)`))
+    await tracker.log(id, logLine('Verify', `fix round ${state.rounds}: pushed ${sha}, resolved ${threads.length} thread(s), human gates re-opened`))
     pr = fetchPr(item.pr!)
-    await tracker.update(id, { verify: 'Watching', openThreads: pr.unresolved, ci: 'Pending' })
+    // You approved the code before this push: look again.
+    await tracker.update(id, { verify: 'Watching', openThreads: pr.unresolved, ci: 'Pending', ...gatesAfterPush(pr) })
     say(`pushed ${sha}; resolved ${threads.length} thread(s)`)
   } finally {
     // A round that did not land is dropped: the next round starts again from the PR head on GitHub.

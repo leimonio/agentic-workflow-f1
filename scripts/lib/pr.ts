@@ -25,6 +25,8 @@ export interface PrStatus {
   url: string
   state: string
   head: string
+  /** The head commit: merge pins it, so a push after the checks cannot slip in. */
+  sha: string
   base: string
   mergeable: string
   ci: Ci
@@ -70,6 +72,15 @@ export function verifyAction(s: { ci: Ci; untriaged?: number; necessary: number;
 }
 
 /** Everything that stops a merge. Empty = merge. */
+/**
+ * A push makes the human gates stale: they approved the code before it. Human review goes back to Waiting, and so does
+ * Visual unless Chromatic sets it (Chromatic reads the new head itself).
+ */
+export const gatesAfterPush = (pr: Pick<PrStatus, 'visual'>): Partial<Item> => ({
+  humanReview: 'Waiting',
+  ...(pr.visual === 'not-run' && { visual: 'Pending review' }),
+})
+
 export function mergeBlockers(item: Item, pr: PrStatus): string[] {
   return [
     pr.state !== 'OPEN' && `PR is ${pr.state}`,
