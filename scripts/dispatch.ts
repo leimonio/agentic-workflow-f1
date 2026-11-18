@@ -3,7 +3,7 @@
 // --pr pushes the build branch (and its base) and opens a PR. Without it the branch stays local.
 import { execFileSync, spawnSync } from 'node:child_process'
 import { nextStage } from './lib/stage.ts'
-import { handoffPath, logLine, type Item } from './lib/tracker.ts'
+import { handoffPath, logLine, slug, type Item } from './lib/tracker.ts'
 import { currentTrackerLabel, trackerFromEnv } from './lib/tracker-from-env.ts'
 import { openWorktree, removeWorktree, worktreeChanges } from './lib/worktree.ts'
 
@@ -30,7 +30,8 @@ async function build(item: Item, all: Item[]) {
   // Stack on an unmerged dependency's branch, else start from the branch dispatch runs on (your earlier work is not on main).
   const dep = all.find((d) => item.dependsOn?.includes(d.id) && d.branch && d.merge !== 'Merged')
   const from = dep?.branch ?? process.env.AGENT_BASE_BRANCH ?? git('branch', '--show-current')
-  const branch = `agent/${item.id}`
+  // Local ids are already the title slug; monday ids are numbers, so add the title to make the branch readable.
+  const branch = /^\d+$/.test(item.id) ? `agent/${item.id}-${slug(item.title)}` : `agent/${item.id}`
   const dir = openWorktree(item.id, from, branch)
   // The baseline must come from the same base, or its failures get blamed on the agent.
   const code = run('build:loop', item.id, { ...process.env, AGENT_BASE_BRANCH: from, AGENT_WORKDIR: dir })
@@ -63,12 +64,15 @@ async function build(item: Item, all: Item[]) {
   console.log(`[dispatch ${item.id}] PR ${pr}`)
 }
 
+// Returns what each item waits on, so --until-idle can end with one summary.
 async function pass() {
   const all = await tracker.list()
+  const waiting: string[] = []
   for (const item of all) {
     const next = nextStage(item, all)
     if (!next) continue
     if ('wait' in next) {
+      waiting.push(`${item.id} (${item.title}): ${next.wait}`)
       console.log(`[dispatch ${item.id}] waiting: ${next.wait}`)
       continue
     }
@@ -79,21 +83,23 @@ async function pass() {
     else if (next.stage === 'verify') run('babysit', item.id)
     else run('merge', item.id)
   }
+  return waiting
 }
 
 console.log(`tracker: ${currentTrackerLabel()}`)
-await pass()
+let waiting = await pass()
 // --until-idle: repeat passes while a pass changes the tracker (a stage moved), bounded. Stops at the
 // first pass that changes nothing, e.g. every item waits on a human or on CI.
 if (args.includes('--until-idle')) {
   const MAX_PASSES = 10
   let before = JSON.stringify(await tracker.list())
   for (let i = 1; i < MAX_PASSES; i++) {
-    await pass()
+    waiting = await pass()
     const after = JSON.stringify(await tracker.list())
     if (after === before) break
     before = after
   }
+  console.log(waiting.length ? `\nwaiting on you:\n${waiting.map((w) => `  ${w}`).join('\n')}` : '\nnothing waiting on you.')
 }
 // shortcut: a fixed 60 s poll, fine for one workshop board; use monday webhooks for more.
 if (args.includes('--watch')) setInterval(() => void pass(), 60_000)
