@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mergeBlockers, readChecks, verifyAction, type PrStatus } from './pr.ts'
+import { gatesAfterPush, mergeBlockers, readChecks, verifyAction, type PrStatus } from './pr.ts'
 
 const run = (name: string, status: string, conclusion = '') => ({ __typename: 'CheckRun' as const, name, status, conclusion })
 const ui = (state: string) => ({ __typename: 'StatusContext' as const, context: 'UI Tests', state, description: '', targetUrl: '' })
@@ -48,5 +48,12 @@ describe('mergeBlockers', () => {
       'Human review is Waiting (needs Approved)',
       'GitHub says mergeable = CONFLICTING',
     ])
+  })
+})
+
+describe('gatesAfterPush', () => {
+  it('re-opens Human review always, and Visual only when Chromatic does not set it', () => {
+    expect(gatesAfterPush({ visual: 'not-run' })).toEqual({ humanReview: 'Waiting', visual: 'Pending review' })
+    expect(gatesAfterPush({ visual: 'Accepted' })).toEqual({ humanReview: 'Waiting' })
   })
 })

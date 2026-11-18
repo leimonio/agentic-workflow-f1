@@ -36,7 +36,7 @@ Behind? `git checkout step-3-solution && npm run seed -- --step 4` (a task PR to
    npm run dispatch                         # discussion threads: escalated with a draft reply
    ```
 
-4. **You decide.** Answer the discussion on GitHub, resolve it, `npm run item -- reset <id> verify`, `npm run dispatch`. When Verify is Stable green, set your gates: **Visual** (Chromatic, or `item visual`) and **Human review** (`item review`). GitHub approval is not used: the agent opens PRs as you, so you can't approve them.
+4. **You decide.** Answer the discussion on GitHub, resolve it, `npm run item -- reset <id> verify`, `npm run dispatch`. When Verify is Stable green, set your gates: **Visual** (Chromatic, or `item visual`) and **Human review** (`item review`). GitHub approval is not used: the agent opens PRs as you, so you can't approve them. If babysit pushes another fix after that, it sets Human review back to Waiting (and Visual, unless Chromatic sets it): you approved the code before the push.
 
 ## Split
 
