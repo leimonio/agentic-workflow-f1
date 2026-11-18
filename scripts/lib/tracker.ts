@@ -1,4 +1,6 @@
 // The only abstraction in the workflow: the same fields whether they live in files or on a monday board.
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 // Field names follow the board columns (spec section 3).
 export interface Item {
   id: string
@@ -44,6 +46,16 @@ export interface Tracker {
   update(id: string, fields: Partial<Item>): Promise<void>
   log(id: string, line: string): Promise<void>
   handoff(id: string, record: Handoff): Promise<void>
+}
+
+/** Where an item's handoff is written, for every tracker. `.agent/handoff.md` holds the latest one too. */
+export const handoffPath = (id: string, dir = '.agent/items') => join(dir, `${id}.handoff.md`)
+
+export function writeHandoff(id: string, title: string, record: Handoff, dir = '.agent/items') {
+  const md = `# Needs human: ${title}\n\n${renderHandoff(record)}`
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(handoffPath(id, dir), md)
+  writeFileSync(join(dir, '..', 'handoff.md'), md)
 }
 
 export const logLine = (stage: string, result: string, at = new Date()) => `${stage} · ${result} · ${at.toISOString()}`

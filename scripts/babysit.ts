@@ -7,8 +7,9 @@ import { readSkill, runAgent, type Verdict } from './lib/agent.ts'
 import { fetchPr, replyToThread, resolveThread } from './lib/github.ts'
 import { MAX_FIX_ROUNDS, verifyAction, type Thread } from './lib/pr.ts'
 import { runBaseline, runGate } from './lib/run-gate.ts'
-import { logLine } from './lib/tracker.ts'
+import { handoffPath, logLine } from './lib/tracker.ts'
 import { trackerFromEnv } from './lib/tracker-from-env.ts'
+import { openWorktree, removeWorktree } from './lib/worktree.ts'
 
 interface Triage extends Verdict {
   verdict: 'necessary' | 'discussion'
@@ -110,21 +111,21 @@ else if (action.do === 'stable') {
     resume: `Resolve the threads on GitHub, then \`npm run item -- reset ${id} verify\` (or set Verify = Watching on the board).`,
   })
   await tracker.log(id, logLine('Verify', `Needs human: ${action.why}`))
-  say(`escalated: ${action.why}`)
+  say(`escalated: ${action.why}. See ${handoffPath(id)}`)
 } else {
   await fix(necessary)
 }
 
 async function fix(threads: Thread[]) {
-  if (git('status', '--porcelain')) return say('skipped fix: the working tree is not clean')
   state.rounds++
   save()
   await tracker.update(id, { verify: 'Fixing', ci: pr.ci === 'Failing' ? 'Fixing' : pr.ci })
-  const back = git('branch', '--show-current')
   git('fetch', '-q', 'origin', pr.head)
-  git('switch', '-C', pr.head, `origin/${pr.head}`)
+  // Detached at the PR head in the item's worktree: your checkout never moves, even if it has this branch checked out.
+  const dir = openWorktree(id, `origin/${pr.head}`)
+  const wt = (...a: string[]) => git('-C', dir, ...a)
   try {
-    runBaseline()
+    runBaseline(dir)
     const failing = pr.ci === 'Failing' ? pr.checks.filter((c) => c.state === 'failure').map((c) => c.name) : []
     const prompt = [
       `${SKILL}\n\nMODE: fix (round ${state.rounds} of ${MAX_FIX_ROUNDS}, script-owned; run \`npm run -s gate -- --json\` before you answer)`,
@@ -132,23 +133,23 @@ async function fix(threads: Thread[]) {
       ...threads.map((t) => `Thread ${t.path}:${t.line ?? '?'}:\n${t.body}\nTriage evidence: ${tri(t)?.evidence}`),
       ...(failing.length ? [`Failing CI checks: ${failing.join(', ')}. Reproduce with npm run gate.`] : []),
     ].join('\n\n')
-    const v = runAgent(prompt, { budgetUsd: 1.5 }).verdict
+    const v = runAgent(prompt, { budgetUsd: 1.5, cwd: dir }).verdict
     say(`agent: ${v.status} · ${v.summary}`)
-    const first = runGate()
-    const stable = first.pass && runGate().pass
-    if (!stable || !git('status', '--porcelain')) {
+    const first = runGate(dir)
+    const stable = first.pass && runGate(dir).pass
+    if (!stable || !wt('status', '--porcelain')) {
       await tracker.log(id, logLine('Verify', `fix round ${state.rounds}: ${stable ? 'no change' : `gate FAIL ${first.newFailures.join(', ')}`}`))
       return say(`round ${state.rounds} did not land (${stable ? 'no change' : 'gate failed'}); next tick decides`)
     }
-    git('add', '-A')
-    git(
+    wt('add', '-A')
+    wt(
       'commit',
       '-q',
       '-m',
       `Address review: ${threads.map((t) => `${t.path}:${t.line ?? '?'}`).join(', ') || 'red CI'}\n\nbabysit round ${state.rounds} for ${id}`,
     )
-    git('push', '-q', 'origin', pr.head)
-    const sha = git('rev-parse', '--short', 'HEAD')
+    wt('push', '-q', 'origin', `HEAD:refs/heads/${pr.head}`)
+    const sha = wt('rev-parse', '--short', 'HEAD')
     for (const t of threads) {
       replyToThread(t.id, `${tri(t)?.reply}\n\nFixed in ${sha}. \`gate\`: PASS twice, 0 new failures.`)
       resolveThread(t.id)
@@ -160,6 +161,7 @@ async function fix(threads: Thread[]) {
     await tracker.update(id, { verify: 'Watching', openThreads: pr.unresolved, ci: 'Pending' })
     say(`pushed ${sha}; resolved ${threads.length} thread(s)`)
   } finally {
-    git('switch', '-q', back)
+    // A round that did not land is dropped: the next round starts again from the PR head on GitHub.
+    removeWorktree(id)
   }
 }
