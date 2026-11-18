@@ -7,7 +7,7 @@ import { option } from '../lib/args.ts'
 import { readSkill, runAgent } from '../lib/agent.ts'
 import { decide, MAX_ATTEMPTS, type Attempt } from '../lib/loop.ts'
 import { runBaseline, runGate as gate } from '../lib/run-gate.ts'
-import { logLine } from '../lib/tracker.ts'
+import { handoffPath, logLine } from '../lib/tracker.ts'
 import { trackerFromEnv } from '../lib/tracker-from-env.ts'
 
 const id = process.argv[2]
@@ -20,9 +20,11 @@ const tracker = trackerFromEnv()
 const item = await tracker.get(id)
 const say = (s: string) => console.log(`[build ${id}] ${s}`)
 const SKILL = readSkill('build-feature', 1)
+// dispatch runs the loop in the item's worktree; run by hand, it works in this checkout.
+const cwd = process.env.AGENT_WORKDIR
 
 say('baseline')
-runBaseline()
+runBaseline(cwd)
 await tracker.update(id, { build: 'In progress', attempts: 0, needsHuman: '' })
 await tracker.log(id, logLine('Build', 'In progress'))
 
@@ -39,12 +41,12 @@ while (decision.kind === 'attempt') {
     'Return status needs_human with one question only if a decision belongs to a human.',
   ].join('\n')
   say(`attempt ${n}/${max}: calling the agent`)
-  const run = runAgent(prompt)
+  const run = runAgent(prompt, { cwd })
   say(`agent: ${run.verdict.status} · ${run.verdict.summary} ($${run.costUsd.toFixed(2)}, ${run.seconds}s)`)
 
   // Stable green: the gate must pass twice in a row. The agent's own "ok" is not evidence.
-  const first = gate()
-  const gates = first.pass ? [first, gate()] : [first]
+  const first = gate(cwd)
+  const gates = first.pass ? [first, gate(cwd)] : [first]
   lastMessages = gates.at(-1)!.messages
   attempts.push({ summary: run.verdict.summary, verdict: run.verdict.status, question: run.verdict.question, gates })
   say(`gate: ${gates.map((g) => (g.pass ? 'PASS' : `FAIL (${g.newFailures.length} new)`)).join(', then ')}`)
@@ -55,11 +57,11 @@ while (decision.kind === 'attempt') {
 }
 
 if (decision.kind === 'done') {
-  const branch = spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).stdout.trim()
+  const branch = spawnSync('git', ['branch', '--show-current'], { cwd, encoding: 'utf8' }).stdout.trim()
   await tracker.update(id, { build: 'Done', branch })
   await tracker.log(id, logLine('Build', 'Done (stable green)'))
   say(`Done: stable green after ${attempts.length} attempt(s).`)
-  process.stdout.write(spawnSync('npx', ['tsx', 'scripts/gate.ts'], { encoding: 'utf8' }).stdout)
+  process.stdout.write(spawnSync('npx', ['tsx', 'scripts/gate.ts'], { cwd, encoding: 'utf8' }).stdout)
   process.exit(0)
 }
 
@@ -73,6 +75,6 @@ await tracker.handoff(id, {
   resume: `Answer here or change the task, then \`npm run item -- reset ${id} build\` and \`npm run build:loop -- ${id}\`.`,
 })
 await tracker.log(id, logLine('Build', `Failed: ${decision.reason}`))
-say(`Escalated (${decision.reason}). .agent/handoff.md:\n`)
-console.log(readFileSync('.agent/handoff.md', 'utf8'))
+say(`Escalated (${decision.reason}). ${handoffPath(id)}:\n`)
+console.log(readFileSync(handoffPath(id), 'utf8'))
 process.exit(1)
