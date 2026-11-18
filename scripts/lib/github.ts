@@ -11,7 +11,7 @@ const THREADS = `query($owner:String!,$name:String!,$n:Int!){repository(owner:$o
 // shortcut: first 100 threads and 50 comments per thread, plenty for a workshop PR; paginate for real repos.
 
 export function fetchPr(ref: string): PrStatus {
-  const v = JSON.parse(gh('pr', 'view', ref, '--json', 'number,url,state,headRefName,baseRefName,mergeable,statusCheckRollup'))
+  const v = JSON.parse(gh('pr', 'view', ref, '--json', 'number,url,state,headRefName,headRefOid,baseRefName,mergeable,statusCheckRollup'))
   const [owner = '', name = ''] = new URL(v.url).pathname.slice(1).split('/')
   const nodes = graphql(THREADS, { owner, name, n: v.number }).repository.pullRequest.reviewThreads.nodes
   const threads: Thread[] = nodes.map(
@@ -37,6 +37,7 @@ export function fetchPr(ref: string): PrStatus {
     url: v.url,
     state: v.state,
     head: v.headRefName,
+    sha: v.headRefOid,
     base: v.baseRefName,
     mergeable: v.mergeable,
     ...readChecks(v.statusCheckRollup ?? []),
