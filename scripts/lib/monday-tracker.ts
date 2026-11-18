@@ -1,7 +1,7 @@
 // monday adapter: the same Item fields, stored in the columns from board-columns.ts.
 import { fromColumnValues, LOG_COLUMN, toColumnValues } from './board-columns.ts'
 import { boardConfig, gql } from './monday.ts'
-import { renderHandoff, type Item, type Tracker } from './tracker.ts'
+import { renderHandoff, writeHandoff, type Item, type Tracker } from './tracker.ts'
 
 interface RawItem {
   id: string
@@ -57,6 +57,8 @@ export function mondayTracker(): Tracker {
       await write(id, { [LOG_COLUMN.id]: { text: prev ? `${prev}\n${line}` : line } })
     },
     async handoff(id, record) {
+      // The scripts print this file's path, so it exists on monday too.
+      writeHandoff(id, (await raw(id)).name, record)
       await write(id, toColumnValues({ needsHuman: record.question }))
       await gql(`mutation ($i: ID!, $body: String!) { create_update(item_id: $i, body: $body) { id } }`, {
         i: id,

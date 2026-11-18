@@ -26,13 +26,13 @@ Grouped by the workshop step that introduces them. All of them are here from the
 | 0 | `npm run gate` | Runs verify, diffs against the baseline. Exits 1 only on NEW failures. Reports new, pre-existing and fixed. |
 | 0 | `npm run format` | Prettier, writes in place. `verify` fails on any unformatted file (`format:<file>`). |
 | 2 | `npm run item -- add\|show\|reset` | Human CLI for the tracker. `reset` is the only way to re-run a stage. |
-| 2 | `npm run build:loop -- <id>` | The build loop: one agent call per attempt, gate after each, max 3. `decide()` in `scripts/lib/loop.ts` picks the next move. Escalates with a handoff. |
+| 2 | `npm run build:loop -- <id>` | The build loop: one agent call per attempt, gate after each, max 3. `decide()` in `scripts/lib/loop.ts` picks the next move. Escalates with a handoff in `.agent/items/<id>.handoff.md`. |
 | 2 | `npm run visual:status` | Reads Chromatic's PR statuses for HEAD. Writes `.agent/visual.json`. |
 | 3 | `npm run board:setup` / `board:read` / `board:write` | monday board: create or complete it (idempotent), read items, write non-human fields. |
 | 3 | `npm run item -- idea\|approve` | Add an idea; `approve` is the human plan gate (on monday, tick Plan approved). |
 | 3 | `npm run plan:loop -- <id>` | Plan agent, schema check, plan-review agent, 2 retries. Writes the task items. |
-| 3 | `npm run dispatch [-- --pr] [-- --watch]` | One pass over the tracker; runs whatever stage each item is at. Prints the tracker first. |
-| 4 | `npm run pr:status -- <id>` / `babysit -- <id>` | PR checks and threads; one verify tick (triage, fix, reply, resolve or escalate). |
+| 3 | `npm run dispatch [-- --pr] [-- --watch]` | One pass over the tracker; runs whatever stage each item is at. Prints the tracker first. Builds in `.agent/worktrees/<id>`, so your branch never moves. |
+| 4 | `npm run pr:status -- <id>` / `babysit -- <id>` | PR checks and threads; one verify tick (triage, fix, reply, resolve or escalate). Fixes in `.agent/worktrees/<id>`. |
 | 4 | `npm run item -- visual\|review <id> …` | The two human PR gates. |
 | 5 | `npm run merge -- <id>` | The merge gate: CI green, 0 threads, Visual Accepted, Human review Approved, mergeable → squash-merge. Else Blocked + handoff. |
 | 5 | `npm run dispatch -- --until-idle` | Repeats passes until one changes nothing (max 10). |
