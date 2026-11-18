@@ -3,7 +3,7 @@
 //   npm run plan:loop -- <idea-id>
 import { readSkill, runAgent } from '../lib/agent.ts'
 import { PLAN_RETRIES, PLAN_SCHEMA, renderTask, REVIEW_SCHEMA, validatePlan, type PlanVerdict, type ReviewVerdict } from '../lib/plan.ts'
-import { logLine } from '../lib/tracker.ts'
+import { handoffPath, logLine } from '../lib/tracker.ts'
 import { trackerFromEnv } from '../lib/tracker-from-env.ts'
 
 const id = process.argv[2]
@@ -71,7 +71,7 @@ if (!accepted) {
     resume: `Answer here or edit the idea, then \`npm run item -- reset ${id} plan\` (or set Plan = Not started on the board).`,
   })
   await tracker.log(id, logLine('Plan', 'Needs human'))
-  say('escalated: see the handoff')
+  say(`escalated: see ${handoffPath(id)}`)
   process.exit(1)
 }
 
