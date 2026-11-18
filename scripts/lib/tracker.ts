@@ -58,6 +58,13 @@ export function writeHandoff(id: string, title: string, record: Handoff, dir = '
   writeFileSync(join(dir, '..', 'handoff.md'), md)
 }
 
+export const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40)
+
 export const logLine = (stage: string, result: string, at = new Date()) => `${stage} · ${result} · ${at.toISOString()}`
 
 export function renderHandoff(h: Handoff): string {
