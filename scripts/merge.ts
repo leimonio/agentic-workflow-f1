@@ -39,9 +39,10 @@ if (blockers.length) {
   process.exit(1)
 }
 
-// shortcut: no head-SHA pin, so a push between this check and the merge is not caught; pass --match-head-commit if that matters.
+// --match-head-commit: GitHub refuses if anyone pushed after the checks above.
+// shortcut: a push by hand after you approved is not caught (only babysit's pushes re-open the gates); store the approved sha if that matters.
 // The branch is kept: tasks stacked on it still need it as their base.
-execFileSync('gh', ['pr', 'merge', String(pr.number), '--squash'], { stdio: 'inherit' })
+execFileSync('gh', ['pr', 'merge', String(pr.number), '--squash', '--match-head-commit', pr.sha], { stdio: 'inherit' })
 const after = fetchPr(item.pr)
 if (after.state !== 'MERGED') throw new Error(`gh pr merge returned but PR #${pr.number} is ${after.state}`)
 await tracker.update(id, { merge: 'Merged' })
