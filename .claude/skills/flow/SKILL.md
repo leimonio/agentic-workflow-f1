@@ -19,7 +19,7 @@ You save the human from typing dispatch, review and merge commands one by one. T
    | `Plan approved (human)` | Read the plan: `npm run item -- show <id>` | `npm run item -- approve <id>` |
    | `Visual = Accepted` | Look at the stories or the page (Chromatic, or `npm run storybook`) | `npm run item -- visual <id> accepted` |
    | `Human review = Approved` | Read the PR diff on GitHub | `npm run item -- review <id> approved` |
-   | `needs human: …` / `Verify = Needs human` | Read `.agent/handoff.md`, answer the threads | `npm run item -- reset <id> verify` once handled |
+   | `needs human: …` / `Verify = Needs human` | Read `.agent/items/<id>.handoff.md`, answer the threads | `npm run item -- reset <id> verify` once handled |
    | `depends on …` | Nothing: it builds after its dependency | (none) |
 
    For a stacked task, list the bottom of the stack first: it must merge before the one on top.
