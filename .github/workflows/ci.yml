@@ -17,7 +17,8 @@ jobs:
       - run: npm ci
       # no --with-deps: hosted images already have the libs, and apt mirrors were unreachable from runners (2026-11-11)
       - run: npx playwright install chromium
-      - run: npm run baseline
+      # The PR's own base: task PRs may target a solution branch with no history in common with main.
+      - run: npm run baseline -- --base origin/${{ github.base_ref || 'main' }}
       - run: npm run gate
 
   # Not required. Posts the "UI Tests" / "UI Review" statuses. A human accepts or rejects in Chromatic.
