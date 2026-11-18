@@ -15,7 +15,7 @@ Behind? `git checkout step-1-solution`.
 
 ## Do
 
-1. **Write `decide()`** in `scripts/lib/loop.ts`. The comment above it lists the rules; `npx vitest run scripts/lib/loop.test.ts` checks each one. The point: the agent's own "ok" never counts, only the gate does.
+1. **Write `decide()`** in `scripts/lib/loop.ts` and change `describe.skip` to `describe` in `scripts/lib/loop.test.ts`. The comment above it lists the rules; `npx vitest run scripts/lib/loop.test.ts` checks each one. The point: the agent's own "ok" never counts, only the gate does.
 2. **Add "Inside the build loop" to `build-feature`.** When the prompt says it runs inside a script-owned loop, the skill must: use `npm run -s gate -- --json` instead of verify (only `newFailures` are yours), never ask in text (return `needs_human` with the question), and treat its JSON verdict as the report.
 3. **Run it.**
 
