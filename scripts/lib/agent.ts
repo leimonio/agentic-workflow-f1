@@ -28,7 +28,10 @@ export interface AgentRun<T extends Verdict = Verdict> {
 }
 
 // A failed call comes back as { status: "failed" } with no other fields, so callers check status first.
-export function runAgent<T extends Verdict = Verdict>(prompt: string, opts: { tools?: string[]; schema?: object; budgetUsd?: number } = {}): AgentRun<T> {
+export function runAgent<T extends Verdict = Verdict>(
+  prompt: string,
+  opts: { tools?: string[]; schema?: object; budgetUsd?: number; cwd?: string } = {},
+): AgentRun<T> {
   // The prompt goes on stdin: a prompt starting with "---" (a skill's frontmatter) would be read as a flag.
   const args = [
     '-p',
@@ -50,7 +53,7 @@ export function runAgent<T extends Verdict = Verdict>(prompt: string, opts: { to
     '--model',
     process.env.AGENT_MODEL ?? 'sonnet',
   ]
-  const r = spawnSync('claude', args, { input: prompt, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  const r = spawnSync('claude', args, { cwd: opts.cwd, input: prompt, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
   let out: { is_error?: boolean; result?: string; structured_output?: T; total_cost_usd?: number; duration_ms?: number }
   const failed = (summary: string) => ({ status: 'failed', summary }) as T
   try {

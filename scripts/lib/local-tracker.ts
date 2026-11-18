@@ -1,7 +1,7 @@
 // Local adapter: one JSON file per item in .agent/items/. Handoffs go next to it, and the latest also to .agent/handoff.md.
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { renderHandoff, type Item, type Tracker } from './tracker.ts'
+import { writeHandoff, type Item, type Tracker } from './tracker.ts'
 
 export function localTracker(dir = '.agent/items'): Tracker {
   const file = (id: string) => join(dir, `${id}.json`)
@@ -44,9 +44,7 @@ export function localTracker(dir = '.agent/items'): Tracker {
       appendFileSync(join(dir, `${id}.log`), line + '\n')
     },
     async handoff(id, record) {
-      const md = `# Needs human: ${read(id).title}\n\n${renderHandoff(record)}`
-      writeFileSync(join(dir, `${id}.handoff.md`), md)
-      writeFileSync(join(dir, '..', 'handoff.md'), md)
+      writeHandoff(id, read(id).title, record, dir)
       write({ ...read(id), needsHuman: record.question })
     },
   }

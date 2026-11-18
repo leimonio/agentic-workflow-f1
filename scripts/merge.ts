@@ -3,7 +3,7 @@
 import { execFileSync } from 'node:child_process'
 import { fetchPr } from './lib/github.ts'
 import { mergeBlockers } from './lib/pr.ts'
-import { logLine } from './lib/tracker.ts'
+import { handoffPath, logLine } from './lib/tracker.ts'
 import { trackerFromEnv } from './lib/tracker-from-env.ts'
 
 const id = process.argv[2] ?? ''
@@ -35,7 +35,7 @@ if (blockers.length) {
     question: `PR #${pr.number} cannot merge: ${blockers.join('; ')}. Fix these, or reset the stage that should fix them.`,
     resume: `Fix the blockers, then \`npm run item -- reset ${id} merge\` (or set Merge = Waiting and clear Needs human on the board).`,
   })
-  say(`blocked: ${blockers.join('; ')}`)
+  say(`blocked: ${blockers.join('; ')}. See ${handoffPath(id)}`)
   process.exit(1)
 }
 
