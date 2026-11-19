@@ -6,6 +6,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { option } from './lib/args.ts'
+import './lib/github.ts' // pins GH_REPO to origin, so a second remote never gets the gh calls
 import { SEED_BRANCH, seedItems, type Fixture, type SeedKey } from './lib/seed.ts'
 import { logLine } from './lib/tracker.ts'
 import { trackerFromEnv } from './lib/tracker-from-env.ts'

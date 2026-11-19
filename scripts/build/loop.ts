@@ -34,7 +34,8 @@ let decision = decide(attempts, max)
 while (decision.kind === 'attempt') {
   const n = attempts.length + 1
   const prompt = [
-    `${SKILL}\n\nTask: ${item.description}`,
+    // planDetails holds the files and acceptance criteria the human approved; description is only the one line.
+    `${SKILL}\n\nTask:\n${item.planDetails ?? item.description}`,
     '',
     `You are inside a script-owned loop. This is attempt ${n} of ${max}. Do not count attempts or retry on your own: make your best change once, run \`npm run -s gate -- --json\`, and return the verdict.`,
     lastMessages.length ? `The gate's NEW failures after the previous attempt (fix only these):\n${lastMessages.join('\n')}` : '',

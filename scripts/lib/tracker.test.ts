@@ -40,3 +40,13 @@ describe('trackerLabel', () => {
   it('names the local folder', () => expect(trackerLabel('local')).toBe('local (.agent/items)'))
   it('links the monday board', () => expect(trackerLabel('monday', '123')).toBe('monday (https://monday.com/boards/123)'))
 })
+
+describe('envWarnings', () => {
+  it('flags a duplicate AGENT_TRACKER and a shell override', async () => {
+    const { envWarnings } = await import('./tracker-from-env.ts')
+    expect(envWarnings(['AGENT_TRACKER=monday'])).toEqual([])
+    expect(envWarnings(['AGENT_TRACKER=monday', 'AGENT_TRACKER=local'])[0]).toMatch(/2 times; the last one \(local\) wins/)
+    expect(envWarnings(['AGENT_TRACKER=monday'], 'local')[0]).toMatch(/from your shell overrides .env \(monday\)/)
+    expect(envWarnings(['AGENT_TRACKER=monday'], 'monday')).toEqual([])
+  })
+})
