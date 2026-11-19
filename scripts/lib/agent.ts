@@ -18,8 +18,13 @@ const SCHEMA = JSON.stringify({
   required: ['status', 'summary'],
 })
 
-// Edits plus the repo's own scripts. No git, no network tools: the script owns those.
-const TOOLS = ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash(npm run *)', 'Bash(npx vitest *)', 'Bash(npx playwright *)', 'Bash(ls *)']
+// Edits plus the checks. No git, no network, no tracker or merge scripts (`npm run *` would allow
+// `npm run item -- review … approved`): the scripts and the human own those.
+const CHECKS = ['gate', 'verify', 'format', 'lint'].flatMap((s) => [`Bash(npm run ${s}*)`, `Bash(npm run -s ${s}*)`])
+export const TOOLS = ['Read', 'Edit', 'Write', 'Glob', 'Grep', ...CHECKS, 'Bash(npx vitest *)', 'Bash(npx playwright *)', 'Bash(ls *)']
+
+/** Set in every agent's environment. item.ts and merge.ts refuse the human gates when it is there. */
+export const AGENT_ENV = 'AGENT_RUN'
 
 export interface AgentRun<T extends Verdict = Verdict> {
   verdict: T
@@ -53,7 +58,13 @@ export function runAgent<T extends Verdict = Verdict>(
     '--model',
     process.env.AGENT_MODEL ?? 'sonnet',
   ]
-  const r = spawnSync('claude', args, { cwd: opts.cwd, input: prompt, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  const r = spawnSync('claude', args, {
+    cwd: opts.cwd,
+    env: { ...process.env, [AGENT_ENV]: '1' },
+    input: prompt,
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+  })
   let out: { is_error?: boolean; result?: string; structured_output?: T; total_cost_usd?: number; duration_ms?: number }
   const failed = (summary: string) => ({ status: 'failed', summary }) as T
   try {

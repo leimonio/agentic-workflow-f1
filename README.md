@@ -12,6 +12,12 @@ npm run verify     # expect 1 known failure (see CLAUDE.md)
 npm run dev
 ```
 
-Start with [workshop/step-0.md](workshop/step-0.md). Behind at the start of step N? `git checkout step-(N-1)-solution` (after adding the template as a remote). For steps 4 and 5, also run `npm run seed -- --step N`: it creates the tracker items and the task PR that git can't restore. Step 3 makes its own items.
+Start with [workshop/step-0.md](workshop/step-0.md). Behind at the start of step N? Add the template remote first (optional item 8 in step 0), then:
+
+```bash
+git stash -u && git checkout -b step-(N-1)-solution template/step-(N-1)-solution && npm ci && npm run baseline -- --base HEAD
+```
+
+For steps 4 and 5, also run `npm run seed -- --step N`: it creates the tracker items and the task PR that git can't restore. Step 3 makes its own items. Task PRs then target the solution branch you are on, not `main`: that is expected.
 
 Secrets live in `.env` (copy `.env.example`). Never commit it.

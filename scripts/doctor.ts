@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'
 import { flag } from './lib/args.ts'
+import './lib/github.ts' // pins GH_REPO to origin, so a second remote never gets the gh calls
 import { nodeFinding, platformFinding, playwrightFinding, repoFindings, toolFinding, type Finding } from './lib/doctor.ts'
 
 const sh = (cmd: string) => spawnSync('sh', ['-c', cmd], { encoding: 'utf8' })

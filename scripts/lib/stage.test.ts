@@ -8,7 +8,9 @@ const task = (f: Partial<Item> = {}): Item => ({ id: 't', title: 'Task', type: '
 describe('nextStage', () => {
   it('plans a new idea and waits for the human plan gate', () => {
     expect(nextStage(idea(), [])).toEqual({ stage: 'plan' })
-    expect(nextStage(idea({ plan: 'Awaiting approval' }), [])).toEqual({ wait: 'Plan approved (human)' })
+    expect(nextStage(idea({ plan: 'Awaiting approval' }), [])).toEqual({
+      wait: 'Plan approved (human) → read npm run item -- show i, then npm run item -- approve i',
+    })
     expect(nextStage(idea({ plan: 'Awaiting approval', planApproved: true }), [])).toEqual({ stage: 'queue' })
     expect(nextStage(idea({ plan: 'Approved', planApproved: true }), [])).toBeNull()
   })
@@ -30,12 +32,32 @@ describe('nextStage', () => {
     const pr = { pr: 'https://x/1', build: 'Done' as const }
     expect(nextStage(task({ ...pr, verify: 'Watching' }), [])).toEqual({ stage: 'verify' })
     expect(nextStage(task(pr), [])).toEqual({ stage: 'verify' })
-    expect(nextStage(task({ ...pr, verify: 'Stable green', visual: 'Accepted' }), [])).toEqual({ wait: 'Human review = Approved (human)' })
+    expect(nextStage(task({ ...pr, verify: 'Stable green', visual: 'Accepted' }), [])).toEqual({
+      wait: 'Human review = Approved (human) → npm run item -- review t approved|changes',
+    })
     expect(nextStage(task({ ...pr, verify: 'Stable green', visual: 'Accepted', humanReview: 'Approved' }), [])).toEqual({ stage: 'merge' })
     expect(nextStage(task({ ...pr, merge: 'Merged', verify: 'Stable green' }), [])).toBeNull()
   })
 
+  it('opens the PR for a task dispatch built without --pr', () => {
+    expect(nextStage(task({ build: 'Done', branch: 'agent/t' }), [])).toEqual({ stage: 'pr' })
+    expect(nextStage(task({ build: 'Done', branch: 'main' }), [])).toBeNull() // built by hand in step 2
+  })
+
+  it('merges the bottom of a stack first', () => {
+    const ready = { pr: 'https://x/2', build: 'Done' as const, verify: 'Stable green' as const, visual: 'Accepted' as const, humanReview: 'Approved' as const }
+    const dep = task({ id: 'a', pr: 'https://x/1', build: 'Done' })
+    const t = task({ id: 'b', dependsOn: ['a'], ...ready })
+    expect(nextStage(t, [dep, t])).toEqual({ wait: 'merge a first' })
+    expect(nextStage(t, [{ ...dep, merge: 'Merged' }, t])).toEqual({ stage: 'merge' })
+  })
+
   it('never moves an item that is waiting for a human', () => {
-    expect(nextStage(task({ build: 'Queued', needsHuman: 'Which API?' }), [])).toEqual({ wait: 'needs human: Which API?' })
+    expect(nextStage(task({ build: 'Queued', needsHuman: 'Which API?' }), [])).toEqual({
+      wait: 'needs human: Which API? → read .agent/items/t.handoff.md, then npm run item -- reset t build',
+    })
+    expect(nextStage(task({ pr: 'https://x/1', verify: 'Needs human', needsHuman: 'q' }), [])).toEqual({
+      wait: 'needs human: q → read .agent/items/t.handoff.md, then npm run item -- reset t verify',
+    })
   })
 })

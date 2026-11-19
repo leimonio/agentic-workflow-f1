@@ -27,6 +27,7 @@ describe('parsers', () => {
           name: '/repo/src/x.test.ts',
           assertionResults: [
             { fullName: 'x works', status: 'passed' },
+            { fullName: 'x is skipped', status: 'skipped' },
             { fullName: 'x breaks', status: 'failed', failureMessages: ['AssertionError: nope\n at ...'] },
           ],
         },
