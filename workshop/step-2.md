@@ -2,10 +2,10 @@
 
 **Goal:** the build loop is a script. The agent is called once per attempt and returns a verdict; one small pure function decides what happens next. You write that function.
 
-**Where we are:** the `build-feature` skill, the format hook and the Driver standings page from step 1, committed on `main`. Behind?
+**Where we are:** the `build-feature` skill, the format hook and the Driver standings page from step 1, committed on `main`. Didn't finish step 1? Switch to its solution branch:
 
 ```bash
-git stash -u && git checkout -b step-1-solution template/step-1-solution && npm ci && npm run baseline -- --base HEAD
+git stash -u && git switch step-1-solution && npm ci && npm run baseline -- --base HEAD
 ```
 
 **Why** (failure #4 in step 0): in step 1 *you* were the loop. You ran the skill, read `verify`, and decided whether to re-prompt. That has three problems:

@@ -5,8 +5,8 @@ import { readChecks, type PrStatus, type Thread } from './pr.ts'
 /** owner/name from a GitHub remote URL (https or ssh), else undefined. */
 export const repoSlug = (url: string) => url.trim().match(/github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?\/?$/)?.[1]
 
-// Every gh call (and the agents' `gh pr diff`) targets origin. With a second remote (the optional
-// `template` from step 0) gh would otherwise ask or pick one, and merge or open PRs on the template.
+// Every gh call (and the agents' `gh pr diff`) targets origin. With a second remote (a template added
+// by hand, say) gh would otherwise ask or pick one, and merge or open PRs there.
 let origin: string | undefined
 try {
   origin = repoSlug(execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }))
