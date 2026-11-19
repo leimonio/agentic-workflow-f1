@@ -2,16 +2,39 @@
 
 **Goal:** after the PR opens, a script triages every review thread: the agent fixes what is necessary and hands you the rest. Then two gates are yours.
 
-Behind? `git checkout step-3-solution && npm run seed -- --step 4` (a task PR to work on).
+**Where we are:** a task PR is open from step 3. Behind? This also creates a task PR to work on:
+
+```bash
+git stash -u && git checkout -b step-3-solution template/step-3-solution && npm ci && npm run baseline -- --base HEAD && npm run seed -- --step 4
+```
+
+**Why** (failures #7 and #8 in step 0): an agent left alone with review comments "fixes" opinions and argues with real defects. And it opens PRs as you, so it could approve them as you. Triage needs evidence, discussions go to you, and the approvals are fields only you set.
+
+## How it works
+
+```
+dispatch ─► babysit <id>, one tick:
+   CI red?            ─► fix round (max 3)
+   new threads?       ─► MODE: triage (read-only) ─► necessary | discussion
+      necessary       ─► MODE: fix ─► gate ─► push ─► reply ─► resolve
+      discussion      ─► Verify = Needs human, draft reply in the handoff
+   all quiet, CI green ─► Verify = Stable green
+YOU ─► Visual, Human review
+```
+
+The fix runs in `.agent/worktrees/<id>`, checked out from the PR's branch, and the worktree is removed after the tick. Bounds: 3 fix rounds, 1 reply per thread, 15 min for CI. Every write to GitHub and the tracker is the script's.
 
 ## Scripts you use now
 
 | Command | What it does |
 |---|---|
 | `npm run pr:status -- <id>` | CI, Chromatic, unresolved threads, and the two human gates. |
-| `npm run dispatch` | For an item with a PR, runs `babysit`: one tick of triage → fix → reply → resolve, or escalate. Bounds: 3 fix rounds, 1 reply per thread, 15 min for CI. |
-| `npm run item -- visual <id> accepted` / `review <id> approved` | Your two gates (or accept the change in Chromatic). |
+| `npm run dispatch` | For an item with a PR, runs one babysit tick. |
+| `npm run item -- visual <id> accepted\|rejected` | Your Visual gate (or accept the change in Chromatic). |
+| `npm run item -- review <id> approved\|changes` | Your Human review gate. |
 | `npm run item -- reset <id> verify` | Babysit again after you answered a thread. |
+
+The `tracker` skill from step 3 works here too: "show the routing task" or "what do I approve next" prints these commands for you.
 
 ## Do
 
@@ -36,7 +59,21 @@ Behind? `git checkout step-3-solution && npm run seed -- --step 4` (a task PR to
    npm run dispatch                         # discussion threads: escalated with a draft reply
    ```
 
-4. **You decide.** Answer the discussion on GitHub, resolve it, `npm run item -- reset <id> verify`, `npm run dispatch`. When Verify is Stable green, set your gates: **Visual** (Chromatic, or `item visual`) and **Human review** (`item review`). GitHub approval is not used: the agent opens PRs as you, so you can't approve them. If babysit pushes another fix after that, it sets Human review back to Waiting (and Visual, unless Chromatic sets it): you approved the code before the push.
+4. **Answer the discussion.** Resolving the thread on GitHub is **not enough**: Verify stays Needs human until babysit runs again, and only `reset` makes it run.
+
+   ```bash
+   # answer and resolve the thread on GitHub, then:
+   npm run item -- reset <id> verify
+   npm run dispatch                         # Verify = Stable green
+   ```
+
+5. **Set your gates.** **Visual** (accept in Chromatic, or `item visual`) and **Human review** (`item review`). GitHub approval is not used: the agent opens PRs as you, so you can't approve them. If babysit pushes another fix after that, it sets Human review back to Waiting (and Visual, unless Chromatic sets it): you approved the code before the push.
+
+## What you should see
+
+- The necessary thread: a commit on the PR, a reply quoting the gate, the thread resolved.
+- The discussion thread: no commit, Verify = Needs human, and a draft reply in `.agent/items/<id>.handoff.md`. The Next block names the reset command.
+- After the reset: Verify = Stable green, and the Next block asks for Visual and Human review.
 
 ## Split
 
@@ -49,3 +86,5 @@ Behind? `git checkout step-3-solution && npm run seed -- --step 4` (a task PR to
 - `pr:status` shows CI green and 0 unresolved threads.
 - The necessary thread was fixed and resolved; the discussion thread escalated with a draft reply and no code change.
 - Visual and Human review are set, by you.
+
+**Next:** every gate is set. [Step 5](step-5.md) turns the merge into one more script, and lets one skill drive the board.
