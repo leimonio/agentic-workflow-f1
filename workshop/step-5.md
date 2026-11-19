@@ -2,10 +2,10 @@
 
 **Goal:** merging is one more gate, not a judgment. Then one skill drives the whole board and stops at every gate with the command for you.
 
-**Where we are:** a babysat PR with Verify = Stable green. Behind? This also creates a PR waiting only for your gates:
+**Where we are:** a babysat PR with Verify = Stable green. Didn't finish step 4? Switch to its solution branch; `seed` recreates the board items and a PR waiting only for your gates:
 
 ```bash
-git stash -u && git checkout -b step-4-solution template/step-4-solution && npm ci && npm run baseline -- --base HEAD && npm run seed -- --step 5
+git stash -u && git switch step-4-solution && npm ci && npm run baseline -- --base HEAD && npm run seed -- --step 5
 ```
 
 **Why** (failures #8 and #9 in step 0): an agent that can merge will merge its own work. And with five stages and three human gates, "what do I run next" becomes the hard part. The merge is a script with a fixed list of conditions, and every run tells you the next command.

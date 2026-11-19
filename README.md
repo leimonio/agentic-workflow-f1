@@ -12,12 +12,15 @@ npm run verify     # expect 1 known failure (see CLAUDE.md)
 npm run dev
 ```
 
-Start with [workshop/step-0.md](workshop/step-0.md). Behind at the start of step N? Add the template remote first (optional item 8 in step 0), then:
+Start with [workshop/step-0.md](workshop/step-0.md). Create your copy with **Include all branches** ticked. Didn't finish a step? Switch to the solution branch of the step before; steps 4 and 5 also need `seed`, which recreates the board items and the task PR that git can't hold:
 
-```bash
-git stash -u && git checkout -b step-(N-1)-solution template/step-(N-1)-solution && npm ci && npm run baseline -- --base HEAD
-```
+| To start step | Run |
+|---|---|
+| 2 | `git switch step-1-solution` |
+| 3 | `git switch step-2-solution` |
+| 4 | `git switch step-3-solution && npm run seed -- --step 4` |
+| 5 | `git switch step-4-solution && npm run seed -- --step 5` |
 
-For steps 4 and 5, also run `npm run seed -- --step N`: it creates the tracker items and the task PR that git can't restore. Step 3 makes its own items. Task PRs then target the solution branch you are on, not `main`: that is expected.
+Each step's "Behind?" line has the full command (with `git stash -u`, `npm ci` and the baseline). Task PRs then target the solution branch you are on, not `main`: that is expected.
 
 Secrets live in `.env` (copy `.env.example`). Never commit it.
