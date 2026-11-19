@@ -109,6 +109,7 @@ The worktree is removed after the commit (the branch keeps the work) and kept wh
 | File | What |
 |---|---|
 | `.claude/skills/plan-tasks`, `plan-review` | The two read-only skills. |
+| `.claude/skills/tracker`, `.claude/hooks/human-gates.mjs` | Items by description; the PreToolUse hook blocks `item approve\|review\|visual` from Claude. |
 | `src/lib/drivers.ts` | Task 1 of the driver profile plan, built by dispatch. |
 
 `dispatch` uses the item list from the start of its pass, so a task that unblocks mid-pass is built on the next pass: that is why step 4 runs it twice.

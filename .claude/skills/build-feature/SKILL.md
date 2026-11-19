@@ -35,6 +35,7 @@ Failures: <id> — mine | pre-existing, one per line (or "none")
 
 When the prompt says you are inside a script-owned loop:
 
+- Hooks are off, so nothing formats your edits: run `npm run format` before every gate run.
 - Use `npm run -s gate -- --json` instead of verify in steps 4–6. Its `newFailures` are yours, `preExisting` are not. The script has already run the baseline.
 - Do not ask a question in text. If a decision belongs to a human, return `needs_human` with the question.
 - The JSON verdict replaces the report block. `ok` means the gate's last run showed 0 new failures. The script re-runs the gate anyway.
