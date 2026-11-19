@@ -3,6 +3,7 @@
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { flag, option } from './lib/args.ts'
+import './lib/github.ts' // pins GH_REPO to origin, so a second remote never gets the gh calls
 import { summarize } from './lib/visual.ts'
 
 const out = (cmd: string, ...a: string[]) => execFileSync(cmd, a, { encoding: 'utf8' }).trim()

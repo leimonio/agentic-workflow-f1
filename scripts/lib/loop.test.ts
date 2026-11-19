@@ -5,7 +5,8 @@ const pass = { pass: true, newFailures: [] }
 const fail = (...ids: string[]) => ({ pass: false, newFailures: ids })
 const attempt = (gates: Attempt['gates'], verdict: Attempt['verdict'] = 'ok'): Attempt => ({ summary: 's', verdict, gates })
 
-describe('build loop decision', () => {
+// Skipped until step 2, when attendees write decide(): change describe.skip to describe.
+describe.skip('build loop decision', () => {
   it('starts with an attempt', () => expect(decide([])).toEqual({ kind: 'attempt' }))
 
   it('is done only on two passing gates in a row', () => {
