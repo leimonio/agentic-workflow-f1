@@ -2,10 +2,10 @@
 
 **Goal:** after the PR opens, a script triages every review thread: the agent fixes what is necessary and hands you the rest. Then two gates are yours.
 
-**Where we are:** a task PR is open from step 3. Behind? This also creates a task PR to work on:
+**Where we are:** a task PR is open from step 3. Didn't finish step 3? Switch to its solution branch; `seed` recreates the board items and a task PR to work on:
 
 ```bash
-git stash -u && git checkout -b step-3-solution template/step-3-solution && npm ci && npm run baseline -- --base HEAD && npm run seed -- --step 4
+git stash -u && git switch step-3-solution && npm ci && npm run baseline -- --base HEAD && npm run seed -- --step 4
 ```
 
 **Why** (failures #7 and #8 in step 0): an agent left alone with review comments "fixes" opinions and argues with real defects. And it opens PRs as you, so it could approve them as you. Triage needs evidence, discussions go to you, and the approvals are fields only you set.
