@@ -1,8 +1,9 @@
 // PreToolUse(Bash): the human gates are the human's. Blocks `npm run item -- approve|review|visual` from Claude.
-let input = ''
-for await (const chunk of process.stdin) input += chunk
-const command = JSON.parse(input).tool_input?.command ?? ''
+import { readFileSync } from 'node:fs'
+import process from 'node:process'
+
+const command = JSON.parse(readFileSync(0, 'utf8')).tool_input?.command ?? ''
 if (/\bitem\b.*\b(approve|review|visual)\b/.test(command)) {
-  console.error('Human gate: print this command for the human to run, do not run it yourself.')
+  process.stderr.write('Human gate: print this command for the human to run, do not run it yourself.\n')
   process.exit(2)
 }
