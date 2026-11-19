@@ -22,7 +22,9 @@ describe('seedItems', () => {
     expect(asItems(4).find((i) => i.id === 't2')).toMatchObject({ pr: 'https://x/pull/9', branch: 'seed/task-pr' })
   })
   it('step 5: the PR is babysat and waits only for the two human gates', () => {
-    expect(next(5).t2).toEqual({ wait: 'Visual = Accepted (human, in Chromatic), Human review = Approved (human)' })
+    expect(next(5).t2).toEqual({
+      wait: 'Visual = Accepted (human, in Chromatic) → npm run item -- visual t2 accepted|rejected; Human review = Approved (human) → npm run item -- review t2 approved|changes',
+    })
   })
   it('never sets the PR gates', () => {
     for (const s of [3, 4, 5]) for (const i of asItems(s)) expect(i).not.toHaveProperty('humanReview')

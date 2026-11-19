@@ -45,12 +45,14 @@ export function parseVitest(json: string, check: Check, root: string): Result[] 
     testResults: { name: string; assertionResults: { fullName: string; status: string; failureMessages?: string[] }[] }[]
   }
   return report.testResults.flatMap((file) =>
-    file.assertionResults.map((t) => ({
-      check,
-      id: `${check}:${rel(file.name, root)}::${t.fullName}`,
-      status: t.status === 'passed' ? ('pass' as const) : ('fail' as const),
-      message: t.status === 'passed' ? '' : (t.failureMessages?.[0] ?? t.status).split('\n')[0]!,
-    })),
+    file.assertionResults
+      .filter((t) => !['skipped', 'pending', 'todo'].includes(t.status)) // skipped is not a failure
+      .map((t) => ({
+        check,
+        id: `${check}:${rel(file.name, root)}::${t.fullName}`,
+        status: t.status === 'passed' ? ('pass' as const) : ('fail' as const),
+        message: t.status === 'passed' ? '' : (t.failureMessages?.[0] ?? t.status).split('\n')[0]!,
+      })),
   )
 }
 
