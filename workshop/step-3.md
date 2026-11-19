@@ -2,10 +2,10 @@
 
 **Goal:** an idea goes on a monday board, an agent plans it, **you** approve the plan on the board, and dispatch builds the first task. The scripts are ready; you write the two planning skills and a tracker skill.
 
-**Where we are:** your step 2 work: `decide()` is written and `build-feature` knows it runs inside a loop. Behind?
+**Where we are:** your step 2 work: `decide()` is written and `build-feature` knows it runs inside a loop. Didn't finish step 2? Switch to its solution branch:
 
 ```bash
-git stash -u && git checkout -b step-2-solution template/step-2-solution && npm ci && npm run baseline -- --base HEAD
+git stash -u && git switch step-2-solution && npm ci && npm run baseline -- --base HEAD
 ```
 
 **Why** (failures #5 and #6 in step 0): real work starts as an idea, not a task. The board makes the agent's plan visible and gives you a gate before any code is written. And builds move out of your checkout.
