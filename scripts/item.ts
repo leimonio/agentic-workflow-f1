@@ -6,10 +6,17 @@
 //   npm run item -- review <id> approved|changes   (human gate)
 //   npm run item -- visual <id> accepted|rejected  (human gate, when Chromatic is not set up)
 //   npm run item -- show <id>
+import { AGENT_ENV } from './lib/agent.ts'
 import { currentTrackerLabel, trackerFromEnv, trackerKind } from './lib/tracker-from-env.ts'
+import { nextStage } from './lib/stage.ts'
 import { logLine, type Item } from './lib/tracker.ts'
 
 const [cmd, label, a, b] = process.argv.slice(2)
+// A review comment can tell an agent to run this. The gates are for a human only.
+if (process.env[AGENT_ENV] && ['approve', 'review', 'visual', 'reset'].includes(cmd ?? '')) {
+  console.error(`refused: \`item ${cmd}\` is a human gate and this shell belongs to an agent (${AGENT_ENV} is set).`)
+  process.exit(1)
+}
 let id = label
 const t = trackerFromEnv()
 const resets: Record<string, Partial<Item>> = {
@@ -54,4 +61,7 @@ else if (cmd === 'review' && id && (a === 'approved' || a === 'changes')) {
   )
   process.exit(2)
 }
-console.log(JSON.stringify(await t.get(id), null, 2))
+const item = await t.get(id)
+console.log(JSON.stringify(item, null, 2))
+const next = nextStage(item, await t.list())
+console.error(`next: ${!next ? 'nothing (done, or not on the board flow)' : 'wait' in next ? next.wait : `npm run dispatch runs ${next.stage}`}`)

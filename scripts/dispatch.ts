@@ -3,6 +3,7 @@
 // --pr pushes the build branch (and its base) and opens a PR. Without it the branch stays local.
 import { execFileSync, spawnSync } from 'node:child_process'
 import { nextStage } from './lib/stage.ts'
+import './lib/github.ts' // pins GH_REPO to origin, so a second remote never gets the gh calls
 import { handoffPath, logLine, slug, type Item } from './lib/tracker.ts'
 import { currentTrackerLabel, trackerFromEnv } from './lib/tracker-from-env.ts'
 import { openWorktree, removeWorktree, worktreeChanges } from './lib/worktree.ts'
@@ -20,6 +21,12 @@ async function queue(idea: Item, all: Item[]) {
   console.log(`[dispatch ${idea.id}] approved: queued ${tasks.map((t) => `${t.id} (${t.title})`).join(', ')}`)
 }
 
+// Stack on an unmerged dependency's branch, else start from the branch dispatch runs on (your earlier work is not on main).
+function baseOf(item: Item, all: Item[]) {
+  const dep = all.find((d) => item.dependsOn?.includes(d.id) && d.branch && d.merge !== 'Merged')
+  return dep?.branch ?? process.env.AGENT_BASE_BRANCH ?? git('branch', '--show-current')
+}
+
 async function build(item: Item, all: Item[]) {
   const rel = `.agent/worktrees/${item.id}`
   // Never wipe what an escalated build left for you to read or finish.
@@ -27,12 +34,11 @@ async function build(item: Item, all: Item[]) {
     return console.log(
       `[dispatch ${item.id}] skipped build: ${rel} has uncommitted changes. Keep them (commit there) or drop them: git worktree remove --force ${rel}`,
     )
-  // Stack on an unmerged dependency's branch, else start from the branch dispatch runs on (your earlier work is not on main).
-  const dep = all.find((d) => item.dependsOn?.includes(d.id) && d.branch && d.merge !== 'Merged')
-  const from = dep?.branch ?? process.env.AGENT_BASE_BRANCH ?? git('branch', '--show-current')
+  const from = baseOf(item, all)
   // Local ids are already the title slug; monday ids are numbers, so add the title to make the branch readable.
   const branch = /^\d+$/.test(item.id) ? `agent/${item.id}-${slug(item.title)}` : `agent/${item.id}`
   const dir = openWorktree(item.id, from, branch)
+  console.log(`[dispatch ${item.id}] building in ${rel} on ${branch} (from ${from}); removed after the commit, kept if the loop escalates`)
   // The baseline must come from the same base, or its failures get blamed on the agent.
   const code = run('build:loop', item.id, { ...process.env, AGENT_BASE_BRANCH: from, AGENT_WORKDIR: dir })
   if (code !== 0) {
@@ -50,7 +56,13 @@ async function build(item: Item, all: Item[]) {
   // Committed: the branch holds the work, and you can now `git switch ${branch}` to look at it.
   removeWorktree(item.id)
   await tracker.update(item.id, { branch })
-  if (!args.includes('--pr')) return console.log(`[dispatch ${item.id}] committed on ${branch}. PR skipped (pass --pr).`)
+  if (!args.includes('--pr')) return console.log(`[dispatch ${item.id}] committed on ${branch}. PR skipped: the next \`dispatch -- --pr\` opens it.`)
+  await openPr({ ...item, branch }, from)
+}
+
+// Also its own stage: a task built without --pr gets its PR on the next dispatch with --pr.
+async function openPr(item: Item, from: string) {
+  const branch = item.branch!
   // The PR's base must exist on GitHub: push it too (a no-op when it is already there).
   git('push', 'origin', from)
   git('push', '-u', 'origin', branch)
@@ -76,10 +88,16 @@ async function pass() {
       console.log(`[dispatch ${item.id}] waiting: ${next.wait}`)
       continue
     }
+    if (next.stage === 'pr' && !args.includes('--pr')) {
+      waiting.push(`${item.id} (${item.title}): PR not opened → npm run dispatch -- --pr`)
+      console.log(`[dispatch ${item.id}] waiting: built on ${item.branch}, no PR. Run dispatch with -- --pr`)
+      continue
+    }
     console.log(`[dispatch ${item.id}] → ${next.stage}`)
     if (next.stage === 'plan') run('plan:loop', item.id)
     else if (next.stage === 'queue') await queue(item, all)
     else if (next.stage === 'build') await build(item, await tracker.list())
+    else if (next.stage === 'pr') await openPr(item, baseOf(item, all))
     else if (next.stage === 'verify') run('babysit', item.id)
     else run('merge', item.id)
   }
@@ -99,7 +117,12 @@ if (args.includes('--until-idle')) {
     if (after === before) break
     before = after
   }
-  console.log(waiting.length ? `\nwaiting on you:\n${waiting.map((w) => `  ${w}`).join('\n')}` : '\nnothing waiting on you.')
 }
+// Every run ends with what is next, so you never have to work out which command comes now.
+console.log(
+  waiting.length
+    ? `\nNext (waiting on you or on another item):\n${waiting.map((w) => `  ${w}`).join('\n')}`
+    : '\nNext: nothing waits on you. Run dispatch again to move what is in progress (CI, babysit), or add an idea.',
+)
 // shortcut: a fixed 60 s poll, fine for one workshop board; use monday webhooks for more.
 if (args.includes('--watch')) setInterval(() => void pass(), 60_000)
