@@ -45,27 +45,22 @@ Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You 
 
 ## Do
 
-1. Click **Use this template** on GitHub and make your copy **public** (on GitHub Free, private repos get no branch protection or auto-merge, which step 5 needs). Clone it and `cd` into it.
+1. Click **Use this template** on GitHub, tick **Include all branches** (the `step-N-solution` branches are your safety net if you fall behind), and make your copy **public** (on GitHub Free, private repos get no branch protection or auto-merge, which step 5 needs). Clone it and `cd` into it.
 2. `nvm use && npm ci`. On Linux, if Playwright cannot start Chromium, doctor tells you to run `sudo npx playwright install-deps chromium` (system libraries; `--fix` never runs sudo).
 3. `npm run doctor`. Every failure prints the exact fix. `npm run doctor -- --fix` applies the repo settings (Actions, auto-merge, branch protection) on your repo.
 4. `npm run verify`. It runs lint, format (`prettier --check`), types, unit, stories and e2e. **Exactly one test fails, on purpose.**
 5. `npm run baseline && npm run gate`. The gate says `PASS (0 new, 1 pre-existing)`.
 6. Open `CLAUDE.md`. Find the rule about "verified".
 7. `npm run dev` and click through Home, Calendar and a race.
-8. *(Optional safety net)* Add the template as a remote so you can jump to a solution branch if you get stuck later. Then tell `gh` that **your** copy is the default repo: with two remotes it could otherwise open or merge PRs on the template.
+8. **Behind at the start of a step?** Each step from 2 on has a "Behind?" line. Run it only if you did not finish the step before: it switches to that step's solution branch, which your copy already has.
 
    ```bash
-   git remote add template https://github.com/leimonio/agentic-workflow-f1.git && git fetch template
-   gh repo set-default <you>/<your-repo>
+   git stash -u && git switch step-1-solution && npm ci && npm run baseline -- --base HEAD   # the line in step 2
    ```
 
-   Behind at the start of step N? Every step has a "Behind?" line of this form:
+   `--base HEAD`: a solution branch may share no history with your `main`, so the baseline is taken from the branch itself. Steps 4 and 5 add `npm run seed`: it recreates the board items and the task PR, which git can't hold.
 
-   ```bash
-   git stash -u && git checkout -b step-(N-1)-solution template/step-(N-1)-solution && npm ci && npm run baseline -- --base HEAD
-   ```
-
-   `--base HEAD`: a solution branch has no common history with your `main`, so the baseline is taken from the branch itself.
+   Forgot to tick **Include all branches**? Fetch the one branch you need from the template and push it: `git fetch https://github.com/leimonio/agentic-workflow-f1.git step-1-solution:step-1-solution && git push -u origin step-1-solution`.
 
 ## What you should see
 
@@ -83,7 +78,7 @@ Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You 
 
 - `npm run doctor` shows no ✘.
 - `npm run gate` exits 0 and says 1 pre-existing.
-- (Optional) `git remote -v` lists `template`, and `gh repo set-default --view` prints your repo.
+- `git branch -r` lists `origin/step-1-solution` to `origin/step-5-solution`.
 - You can say why the gate passes although a test fails (the baseline remembers it; only NEW failures count).
 
 **Next:** you have checks but no agent yet. [Step 1](step-1.md) gives the agent its first skill.
