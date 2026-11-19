@@ -12,17 +12,14 @@ You save the human from typing dispatch, review and merge commands one by one. T
 1. Run `npm run -s dispatch -- --pr --until-idle`. It repeats passes until a pass changes nothing (max 10). Do not loop it yourself.
 2. For each `PR <url>` line in that output, run the `review-pr` skill on that PR once. Skip PRs you already reviewed in this session.
 3. If step 2 posted any review, run `npm run -s dispatch -- --pr --until-idle` again so babysit triages the new threads.
-4. Report as a to-do list for the human, one line per entry in the final `waiting on you:` block, with the exact command:
+4. Report the final `Next (waiting on you or on another item):` block from the last dispatch, one line per entry, as it is: each line already names what it waits for and, after `→`, the exact command. Before each command, say what the human looks at first:
+   - `Plan approved`: the plan, `npm run item -- show <id>`.
+   - `Visual`: the stories or the page (Chromatic, or `npm run storybook`).
+   - `Human review`: the PR diff on GitHub.
+   - `needs human` / `Verify = Needs human`: `.agent/items/<id>.handoff.md` and the threads.
+   - `merge <id> first`, `depends on …`: nothing, it moves after the other item.
 
-   | Waiting on | What the human does first | Command |
-   |---|---|---|
-   | `Plan approved (human)` | Read the plan: `npm run item -- show <id>` | `npm run item -- approve <id>` |
-   | `Visual = Accepted` | Look at the stories or the page (Chromatic, or `npm run storybook`) | `npm run item -- visual <id> accepted` |
-   | `Human review = Approved` | Read the PR diff on GitHub | `npm run item -- review <id> approved` |
-   | `needs human: …` / `Verify = Needs human` | Read `.agent/items/<id>.handoff.md`, answer the threads | `npm run item -- reset <id> verify` once handled |
-   | `depends on …` | Nothing: it builds after its dependency | (none) |
-
-   For a stacked task, list the bottom of the stack first: it must merge before the one on top.
+   If the block says nothing waits on you, say so and quote it.
 5. End with: "Run the commands you agree with, then say `flow` again."
 
 ## Never
