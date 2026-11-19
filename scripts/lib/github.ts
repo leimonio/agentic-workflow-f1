@@ -2,6 +2,19 @@
 import { execFileSync } from 'node:child_process'
 import { readChecks, type PrStatus, type Thread } from './pr.ts'
 
+/** owner/name from a GitHub remote URL (https or ssh), else undefined. */
+export const repoSlug = (url: string) => url.trim().match(/github\.com[:/]([^/]+\/[^/]+?)(?:\.git)?\/?$/)?.[1]
+
+// Every gh call (and the agents' `gh pr diff`) targets origin. With a second remote (the optional
+// `template` from step 0) gh would otherwise ask or pick one, and merge or open PRs on the template.
+let origin: string | undefined
+try {
+  origin = repoSlug(execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }))
+} catch {
+  // no origin remote: leave gh's own choice
+}
+if (origin && !process.env.GH_REPO) process.env.GH_REPO = origin
+
 const gh = (...a: string[]) => execFileSync('gh', a, { encoding: 'utf8' })
 const graphql = (query: string, vars: Record<string, string | number>) =>
   JSON.parse(gh('api', 'graphql', '-f', `query=${query}`, ...Object.entries(vars).flatMap(([k, v]) => [typeof v === 'number' ? '-F' : '-f', `${k}=${v}`]))).data
