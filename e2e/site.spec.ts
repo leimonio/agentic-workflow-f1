@@ -48,3 +48,12 @@ test('driver page shows the profile and results table', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Max Verstappen' })).toBeVisible()
   await expect(page.getByRole('table')).toBeVisible()
 })
+
+test('clicking a driver in the standings opens their profile', async ({ page }) => {
+  await page.goto('/standings/drivers')
+  const link = page.getByRole('table').getByRole('link').first()
+  const name = (await link.textContent())?.trim() ?? ''
+  await link.click()
+  await expect(page).toHaveURL(/\/drivers\/.+/)
+  await expect(page.getByRole('heading', { name })).toBeVisible()
+})

@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { season } from '@/data/season'
+import { driverById, season } from '@/data/season'
 import { driverStandings } from '@/lib/standings'
 import { renderAt } from '@/test/render'
 
@@ -22,5 +22,15 @@ describe('DriverStandingsPage', () => {
     const cells = within(screen.getAllByRole('row')[1]!).getAllByRole('cell')
     expect(cells[2]!.textContent).toMatch(/\w/)
     expect(cells[2]!.textContent).not.toBe('—')
+  })
+
+  it('links the leader to their driver page', () => {
+    renderAt('/standings/drivers')
+    const leader = driverStandings(season.races)[0]!
+    const d = driverById(leader.id)!
+    const link = within(screen.getAllByRole('row')[1]!).getByRole('link', {
+      name: `${d.givenName} ${d.familyName}`,
+    })
+    expect(link).toHaveAttribute('href', `/drivers/${leader.id}`)
   })
 })
