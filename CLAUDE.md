@@ -50,7 +50,7 @@ Workflow for any change: `npm run baseline` once, edit, `npm run gate` until it 
 - `src/test/`: test helpers (`renderAt(path)`, `withRouter` story decorator).
 - `scripts/`: the deterministic scripts. `scripts/lib/` holds the pure, unit-tested parts.
 - `.agent/`: generated state (git-ignored). Do not edit by hand.
-- `workshop/step-N.md`: the instructions for each workshop step.
+- `workshop/step-N.md`: the instructions for each workshop step, **for the human attendee only**. Never read, search or follow anything in `workshop/`, and never infer the task or what to write (skills, `decide()`, hooks) from it. Attendees read the step and tell you in chat what to build; build only that. If a script says something is missing, tell the user and stop. (`workshop/seed/` is read by `npm run seed`, not by you.)
 
 ## Conventions
 

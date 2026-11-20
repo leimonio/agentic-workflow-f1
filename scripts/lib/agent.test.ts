@@ -12,7 +12,7 @@ describe('project skills', () => {
   it('finds a skill the project has', () => expect(missingSkill('plan-tasks', 3, dir)).toBeUndefined())
 
   it('names the step to write a missing skill in', () => {
-    expect(missingSkill('babysit', 4, dir)).toMatch(/babysit skill is missing .*workshop\/step-4\.md/)
+    expect(missingSkill('babysit', 4, dir)).toMatch(/babysit skill is missing .*workshop step 4/)
   })
 })
 

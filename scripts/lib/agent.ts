@@ -79,7 +79,7 @@ export function runAgent<T extends Verdict = Verdict>(
 /** Why the project's skill can't be used, or undefined when it is there. */
 export function missingSkill(name: string, step: number, dir = '.claude/skills'): string | undefined {
   const path = `${dir}/${name}/SKILL.md`
-  return existsSync(path) ? undefined : `The ${name} skill is missing (${path}). Write it first: workshop/step-${step}.md`
+  return existsSync(path) ? undefined : `The ${name} skill is missing (${path}). Ask the attendee for it (workshop step ${step}).`
 }
 
 /** The project's own SKILL.md, inlined into the prompt. Sending `/<name>` instead could run a same-named global or built-in skill. */
