@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { TeamSwatch } from '@/components/TeamSwatch'
 import { Table, Td, Th } from '@/components/ui/table'
 import { driverById, season } from '@/data/season'
@@ -27,7 +28,15 @@ export function DriverStandingsPage() {
             return (
               <tr key={r.id}>
                 <Td>{r.position}</Td>
-                <Td>{d ? `${d.givenName} ${d.familyName}` : r.id}</Td>
+                <Td>
+                  {d ? (
+                    <Link className="underline" to={`/drivers/${r.id}`}>
+                      {d.givenName} {d.familyName}
+                    </Link>
+                  ) : (
+                    r.id
+                  )}
+                </Td>
                 <Td>{team ? <TeamSwatch constructorId={team} /> : '—'}</Td>
                 <Td>{r.wins}</Td>
                 <Td>{r.points}</Td>
