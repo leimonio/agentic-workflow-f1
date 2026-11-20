@@ -63,6 +63,8 @@ say(`merged PR #${pr.number} into ${pr.base}`)
 for (const d of all.filter((d) => d.pr && d.merge !== 'Merged')) {
   if (fetchPr(d.pr!).base !== pr.head) continue
   execFileSync('gh', ['pr', 'edit', d.pr!, '--base', pr.base], { stdio: 'inherit' })
+  // A merge tried before this one blocked it as stacked; that blocker is gone. The next merge re-checks the rest live.
+  if (d.merge === 'Blocked') await tracker.update(d.id, { merge: 'Waiting', needsHuman: '' })
   await tracker.log(d.id, logLine('Merge', `base moved from ${pr.head} to ${pr.base} after ${id} merged`))
   say(`moved ${d.id}'s PR onto ${pr.base}`)
 }
