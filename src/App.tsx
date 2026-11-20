@@ -3,6 +3,7 @@ import { Layout } from '@/components/Layout'
 import { CalendarPage } from '@/pages/CalendarPage'
 import { ConstructorStandingsPage } from '@/pages/ConstructorStandingsPage'
 import { DriverStandingsPage } from '@/pages/DriverStandingsPage'
+import { DriverPage } from '@/pages/DriverPage'
 import { HomePage } from '@/pages/HomePage'
 import { RacePage } from '@/pages/RacePage'
 
@@ -15,6 +16,7 @@ export const routes = [
       { path: '/standings/drivers', element: <DriverStandingsPage /> },
       { path: '/standings/constructors', element: <ConstructorStandingsPage /> },
       { path: '/races/:round', element: <RacePage /> },
+      { path: '/drivers/:id', element: <DriverPage /> },
     ],
   },
 ]

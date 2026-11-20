@@ -42,3 +42,9 @@ test('unknown race shows a not-found message', async ({ page }) => {
   await page.goto('/races/99')
   await expect(page.getByRole('heading', { name: 'Race not found' })).toBeVisible()
 })
+
+test('driver page shows the profile and results table', async ({ page }) => {
+  await page.goto('/drivers/max_verstappen')
+  await expect(page.getByRole('heading', { name: 'Max Verstappen' })).toBeVisible()
+  await expect(page.getByRole('table')).toBeVisible()
+})
