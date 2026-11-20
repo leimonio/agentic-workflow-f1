@@ -77,7 +77,7 @@ if (flag('fix')) {
   for (const f of findings) {
     if (f.status !== 'fail' || !f.fix || /^(Run|Install)/.test(f.fix)) continue
     const r = sh(f.fix)
-    if (r.status === 0) Object.assign(f, { status: 'ok', message: `${f.message} -> fixed`, fix: undefined })
+    if (r.status === 0) Object.assign(f, { status: 'ok', message: `fixed (was: ${f.message})`, fix: undefined })
     else f.message += ` (fix failed: ${r.stderr.trim().split('\n')[0]})`
   }
   if (repo) {
