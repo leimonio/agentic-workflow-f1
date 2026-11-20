@@ -13,4 +13,6 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks },
     rules: { ...reactHooks.configs.recommended.rules },
   },
+  // Plain JS files are Node scripts, such as the .claude/hooks/*.mjs written in step 1.
+  { files: ['**/*.{js,mjs,cjs}'], languageOptions: { globals: globals.node } },
 )
