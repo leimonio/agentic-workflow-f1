@@ -50,7 +50,7 @@ The `tracker` skill from step 3 works here too: "show the routing task" or "what
    claude "/review-pr <pr-number>"          # or ask a neighbour to review
    ```
 
-   Then add **two comments yourself** on the PR's Files tab, so both triage paths run even when the review found nothing:
+   Then add **two comments yourself** on the PR's Files tab, so both triage paths run even when the review found nothing. If a dispatch already ran on that PR, its Verify may be Stable green, and babysit does not look again: run `npm run item -- reset <id> verify` after commenting.
    - **Necessary**, with evidence: a file outside the task's file list, or an acceptance criterion with no test (quote it). On the seed PR: the `Link` line in `src/pages/DriverStandingsPage.tsx`, "Linking the standings is task t3, and this file is not in this task's files: drop it from this PR."
    - **Discussion**, a question only you can decide. On the seed PR, on the results table in `DriverProfilePage.tsx`: "Should this table show sprint results too?"
 

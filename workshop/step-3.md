@@ -82,7 +82,7 @@ The worktree is removed after the commit (the branch keeps the work) and kept wh
    - Resolve the id from the description with `npm run -s board:read`. Zero or several matches: list them and ask.
    - Run `item show`, `add`, `idea` and `reset` (only when asked).
    - **Print, never run,** the gate commands (`approve`, `visual`, `review`): the human runs them.
-   - Back it with a `PreToolUse` hook on `Bash` in `.claude/settings.json` that blocks `npm run item -- approve|review|visual`, so the rule holds even when the prompt is ignored.
+   - Back it with a `PreToolUse` hook on `Bash` in `.claude/settings.json` that blocks `npm run item -- approve|review|visual`, so the rule holds even when the prompt is ignored. Match the command, not the words: `/npm run (-s )?item -- (approve|review|visual)\b/`. A loose match such as `item.*visual` also blocks `npm run visual:status`, `item show` and any commit message that names a gate.
 
 ## What you should see
 

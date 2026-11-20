@@ -45,6 +45,8 @@ Branch protection requires only the `gate` check: `npm run doctor` tells you if 
    npm run dispatch                         # → merged PR, task moves to Done
    ```
 
+   The merge landed on GitHub, not in your checkout: `git pull` before you commit and push on your branch again.
+
 2. **Write `flow`** (`.claude/skills/flow/SKILL.md`): run `npm run -s dispatch -- --pr --until-idle`, run `review-pr` once on each new PR, run dispatch again, then print the final **Next** block as it is: the commands are already in it. Never set a gate, never merge, never loop dispatch itself.
 3. Add an idea to the board, then say `flow` in Claude Code. Run the gate commands it gives you, say `flow` again.
 

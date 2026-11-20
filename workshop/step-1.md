@@ -39,7 +39,7 @@ You are still the loop: you decide when to re-prompt.
    git add -A && git commit -m "Step 1: build-feature skill and format hook" && git push
    ```
 
-   No PR for this one: you are the reviewer, and the PR flow starts in step 3.
+   No PR for this one: you are the reviewer, and the PR flow starts in step 3. After `doctor -- --fix`, the push prints `Required status check "gate" is expected`: that is GitHub noting your admin bypass, and the push went through.
 
 ## What you should see
 
