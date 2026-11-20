@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { option } from '../lib/args.ts'
 import { COLOR_ID, COLUMNS, GROUPS, LOG_COLUMN, labelColor } from '../lib/board-columns.ts'
 import { BOARD_FILE, gql, type BoardConfig } from '../lib/monday.ts'
+import { trackerKind } from '../lib/tracker-from-env.ts'
 
 const created: string[] = []
 
@@ -80,3 +81,6 @@ writeFileSync(BOARD_FILE, JSON.stringify({ boardId, groups } satisfies BoardConf
 console.log(created.length ? `board:setup changed ${created.length}: ${created.join(', ')}` : `board:setup: board ${boardId} already complete, nothing changed`)
 console.log(`Board: ${board.name} ${board.url}`)
 console.log(`Wrote ${BOARD_FILE}. Use it with AGENT_TRACKER=monday.`)
+// The board is ready but unused until .env says so: dispatch and item keep writing to .agent/items/.
+if (trackerKind() !== 'monday')
+  console.log(`Warning: AGENT_TRACKER is ${trackerKind()}, so the scripts still use the local tracker. Change that line in .env to AGENT_TRACKER=monday.`)

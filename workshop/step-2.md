@@ -66,7 +66,7 @@ The agent's "ok" is advisory only: `decide()` reads the gate.
    npm run item -- show constructors
    ```
 
-   The Home change alters an existing story on purpose: after you push, `npm run visual:status` shows it waiting for a human.
+   The Home change alters an existing story on purpose: after you push, `npm run visual:status` shows it waiting for a human (`not-run` without a Chromatic token, see step 0).
 5. **Force an escalation.** Add a test that cannot pass to the end of `src/lib/standings.test.ts`:
 
    ```ts

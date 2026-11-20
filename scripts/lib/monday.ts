@@ -21,6 +21,9 @@ export async function gql<T>(query: string, variables: Record<string, unknown> =
     headers: { Authorization: token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, variables }),
     signal: AbortSignal.timeout(30_000),
+  }).catch((e: Error) => {
+    // A dropped network is not a bug in the scripts: one line instead of a stack trace.
+    throw new Error(`monday API unreachable (${(e.cause as Error | undefined)?.message ?? e.message}). Check your connection and run the command again.`)
   })
   const body = (await res.json()) as { data?: T; errors?: { message: string }[]; error_message?: string }
   if (!res.ok || body.errors || body.error_message)

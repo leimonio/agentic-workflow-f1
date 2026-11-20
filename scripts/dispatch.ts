@@ -2,7 +2,7 @@
 //   npm run dispatch [-- --watch | --until-idle] [-- --pr]
 // --pr pushes the build branch (and its base) and opens a PR. Without it the branch stays local.
 import { execFileSync, spawnSync } from 'node:child_process'
-import { nextStage } from './lib/stage.ts'
+import { nextStage, waitingLines } from './lib/stage.ts'
 import './lib/github.ts' // pins GH_REPO to origin, so a second remote never gets the gh calls
 import { handoffPath, logLine, slug, type Item } from './lib/tracker.ts'
 import { currentTrackerLabel, trackerFromEnv } from './lib/tracker-from-env.ts'
@@ -76,49 +76,49 @@ async function openPr(item: Item, from: string) {
   console.log(`[dispatch ${item.id}] PR ${pr}`)
 }
 
-// Returns what each item waits on, so --until-idle can end with one summary.
 async function pass() {
-  const all = await tracker.list()
-  const waiting: string[] = []
-  for (const item of all) {
+  let all = await tracker.list()
+  for (const id of all.map((i) => i.id)) {
+    const item = all.find((i) => i.id === id)
+    if (!item) continue
     const next = nextStage(item, all)
     if (!next) continue
     if ('wait' in next) {
-      waiting.push(`${item.id} (${item.title}): ${next.wait}`)
       console.log(`[dispatch ${item.id}] waiting: ${next.wait}`)
       continue
     }
     if (next.stage === 'pr' && !args.includes('--pr')) {
-      waiting.push(`${item.id} (${item.title}): PR not opened → npm run dispatch -- --pr`)
       console.log(`[dispatch ${item.id}] waiting: built on ${item.branch}, no PR. Run dispatch with -- --pr`)
       continue
     }
     console.log(`[dispatch ${item.id}] → ${next.stage}`)
     if (next.stage === 'plan') run('plan:loop', item.id)
     else if (next.stage === 'queue') await queue(item, all)
-    else if (next.stage === 'build') await build(item, await tracker.list())
+    else if (next.stage === 'build') await build(item, all)
     else if (next.stage === 'pr') await openPr(item, baseOf(item, all))
     else if (next.stage === 'verify') run('babysit', item.id)
     else run('merge', item.id)
+    // Re-read: a stage changes what later items see (a merge unblocks the PR stacked on it).
+    all = await tracker.list()
   }
-  return waiting
 }
 
 console.log(`tracker: ${currentTrackerLabel()}`)
-let waiting = await pass()
+await pass()
 // --until-idle: repeat passes while a pass changes the tracker (a stage moved), bounded. Stops at the
 // first pass that changes nothing, e.g. every item waits on a human or on CI.
 if (args.includes('--until-idle')) {
   const MAX_PASSES = 10
   let before = JSON.stringify(await tracker.list())
   for (let i = 1; i < MAX_PASSES; i++) {
-    waiting = await pass()
+    await pass()
     const after = JSON.stringify(await tracker.list())
     if (after === before) break
     before = after
   }
 }
-// Every run ends with what is next, so you never have to work out which command comes now.
+// Every run ends with what is next, read after the stages ran, so you never have to work out which command comes now.
+const waiting = waitingLines(await tracker.list(), args.includes('--pr'))
 console.log(
   waiting.length
     ? `\nNext (waiting on you or on another item):\n${waiting.map((w) => `  ${w}`).join('\n')}`

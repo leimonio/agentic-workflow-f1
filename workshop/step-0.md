@@ -47,7 +47,8 @@ Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You 
 
 1. Click **Use this template** on GitHub, tick **Include all branches** (the `step-N-solution` branches are your safety net if you fall behind), and make your copy **public** (on GitHub Free, private repos get no branch protection or auto-merge, which step 5 needs). Clone it and `cd` into it.
 2. `nvm use && npm ci`. On Linux, if Playwright cannot start Chromium, doctor tells you to run `sudo npx playwright install-deps chromium` (system libraries; `--fix` never runs sudo).
-3. `npm run doctor`. Every failure prints the exact fix. `npm run doctor -- --fix` applies the repo settings (Actions, auto-merge, branch protection) on your repo.
+3. `npm run doctor`. Every failure prints the exact fix. `npm run doctor -- --fix` applies the repo settings (Actions, auto-merge, branch protection) on your repo. It needs admin rights on the copy, which you have on your own.
+   Chromatic is optional. Without a `CHROMATIC_PROJECT_TOKEN` (a repo secret for CI, and `.env` for local runs) `visual:status` says `not-run`, and you set Visual yourself with `npm run item -- visual <id> accepted` wherever a step says "accept in Chromatic".
 4. `npm run verify`. It runs lint, format (`prettier --check`), types, unit, stories and e2e. **Exactly one test fails, on purpose.**
 5. `npm run baseline && npm run gate`. The gate says `PASS (0 new, 1 pre-existing)`.
 6. Open `CLAUDE.md`. Find the rule about "verified".
@@ -78,7 +79,7 @@ Runs on macOS and Linux. On Windows, use WSL2 (Ubuntu) and clone inside it. You 
 
 - `npm run doctor` shows no ✘.
 - `npm run gate` exits 0 and says 1 pre-existing.
-- `git branch -r` lists `origin/step-1-solution` to `origin/step-5-solution`.
+- `git branch -r` lists `origin/step-1-solution` to `origin/step-5-solution` (and `origin/seed/task-pr`, the task PR `seed --step 4` opens if you fall behind in step 4).
 - You can say why the gate passes although a test fails (the baseline remembers it; only NEW failures count).
 
 **Next:** you have checks but no agent yet. [Step 1](step-1.md) gives the agent its first skill.
