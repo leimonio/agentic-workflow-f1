@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextStage } from './stage.ts'
+import { nextStage, waitingLines } from './stage.ts'
 import type { Item } from './tracker.ts'
 
 const idea = (f: Partial<Item> = {}): Item => ({ id: 'i', title: 'Idea', type: 'Idea', description: 'd', ...f })
@@ -59,5 +59,20 @@ describe('nextStage', () => {
     expect(nextStage(task({ pr: 'https://x/1', verify: 'Needs human', needsHuman: 'q' }), [])).toEqual({
       wait: 'needs human: q → read .agent/items/t.handoff.md, then npm run item -- reset t verify',
     })
+  })
+})
+
+describe('waitingLines', () => {
+  it('lists human waits, and an unopened PR only without --pr', () => {
+    const all = [
+      task({ id: 'a', pr: 'https://x/1', verify: 'Stable green' }),
+      task({ id: 'b', build: 'Done', branch: 'agent/b' }),
+      task({ id: 'c', pr: 'https://x/2', verify: 'Watching' }),
+    ]
+    const lines = waitingLines(all, false)
+    expect(lines).toHaveLength(2)
+    expect(lines[0]).toMatch(/^a \(Task\): Visual = Accepted/)
+    expect(lines[1]).toBe('b (Task): PR not opened → npm run dispatch -- --pr')
+    expect(waitingLines(all, true)).toEqual([lines[0]])
   })
 })

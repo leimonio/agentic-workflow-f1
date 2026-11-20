@@ -47,3 +47,13 @@ export function nextStage(item: Item, all: Item[]): Next {
   }
   return null
 }
+
+/** The Next block: one line per item that waits. Without --pr, a built task waits for the next `dispatch -- --pr`. */
+export function waitingLines(all: Item[], withPr: boolean): string[] {
+  return all.flatMap((item) => {
+    const next = nextStage(item, all)
+    if (next && 'wait' in next) return [`${item.id} (${item.title}): ${next.wait}`]
+    if (next?.stage === 'pr' && !withPr) return [`${item.id} (${item.title}): PR not opened → npm run dispatch -- --pr`]
+    return []
+  })
+}
